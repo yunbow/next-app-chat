@@ -1,0 +1,129 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+:root {
+  --background: oklch(0.975 0.005 220);
+  --foreground: oklch(0.20 0.02 220);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.20 0.02 220);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.20 0.02 220);
+  --primary: oklch(0.50 0.18 220);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.95 0.01 220);
+  --secondary-foreground: oklch(0.25 0.05 220);
+  --muted: oklch(0.96 0.005 220);
+  --muted-foreground: oklch(0.55 0.02 220);
+  --accent: oklch(0.88 0.02 220);
+  --accent-foreground: oklch(0.25 0.10 220);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.90 0.01 220);
+  --input: oklch(0.87 0.01 220);
+  --ring: oklch(0.50 0.18 220);
+  --radius: 0.5rem;
+  --chart-1: oklch(0.50 0.18 220);
+  --chart-2: oklch(0.60 0.15 200);
+  --chart-3: oklch(0.55 0.14 240);
+  --chart-4: oklch(0.65 0.12 180);
+  --chart-5: oklch(0.60 0.16 260);
+  --font-sans: var(--font-geist-sans), var(--font-noto-sans-jp), system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+.dark {
+  --background: oklch(0.18 0.02 220);
+  --foreground: oklch(0.96 0.008 220);
+  --card: oklch(0.23 0.02 220);
+  --card-foreground: oklch(0.96 0.008 220);
+  --popover: oklch(0.23 0.02 220);
+  --popover-foreground: oklch(0.96 0.008 220);
+  --primary: oklch(0.68 0.15 220);
+  --primary-foreground: oklch(0.15 0.02 220);
+  --secondary: oklch(0.28 0.02 220);
+  --secondary-foreground: oklch(0.96 0.008 220);
+  --muted: oklch(0.28 0.02 220);
+  --muted-foreground: oklch(0.70 0.01 220);
+  --accent: oklch(0.30 0.08 220);
+  --accent-foreground: oklch(0.96 0.008 220);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.68 0.15 220);
+  --chart-1: oklch(0.68 0.15 220);
+  --chart-2: oklch(0.65 0.14 200);
+  --chart-3: oklch(0.62 0.13 240);
+  --chart-4: oklch(0.60 0.12 180);
+  --chart-5: oklch(0.63 0.15 260);
+}
+
+* {
+  border-color: var(--border);
+}
+
+/* Next.js injects the dev indicator inside a <script position:absolute> with no
+   z-index, so it paints below z-50 elements (CookieConsent, MobileNav).
+   Target the script wrapper and the shadow host to keep the indicator on top. */
+script[data-nextjs-dev-overlay],
+nextjs-portal {
+  z-index: 99999;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Respect the user OS "reduce motion" preference.
+ * Wildcard reset is the widely-accepted pragma (MDN / a11y-project):
+ *   - 0.01ms (not 0ms) keeps animation/transition end-events firing so JS
+ *     listeners keyed on transitionend still work.
+ *   - Covers Tailwind animate- and transition- utilities and custom @keyframes.
+ * Opt back into motion per-element with motion-safe: Tailwind variant or an
+ * explicit media query override when motion conveys meaning. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
