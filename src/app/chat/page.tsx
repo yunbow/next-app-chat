@@ -1,0 +1,243 @@
+'use client';
+
+import { useSession } from 'next-auth/react';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ChatMessagesWindow } from '@/widgets/chat/ChatMessagesWindow';
+import { GroupSettingsModal } from '@/widgets/chat/GroupSettingsModal';
+import Link from 'next/link';
+import { Button } from '@/shared/ui/button/Button';
+import { Avatar } from '@/shared/ui/avatar/Avatar';
+import { Skeleton } from '@/shared/ui/skeleton';
+
+function ChatSkeleton() {
+  return (
+    <div className="flex h-full" role="status">
+      <div className="w-80 border-r p-4 space-y-4" aria-hidden="true">
+        <Skeleton className="h-10 w-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-16 w-full rounded-lg" />
+        </div>
+      </div>
+      <div className="flex-1 flex flex-col" aria-hidden="true">
+        <div className="border-b p-4">
+          <Skeleton className="h-6 w-48" />
+        </div>
+        <div className="flex-1 p-4 space-y-4">
+          <Skeleton className="h-20 w-3/4 rounded-lg" />
+          <Skeleton className="h-20 w-2/3 rounded-lg ml-auto" />
+          <Skeleton className="h-20 w-3/4 rounded-lg" />
+          <Skeleton className="h-20 w-2/3 rounded-lg ml-auto" />
+        </div>
+        <div className="border-t p-4">
+          <Skeleton className="h-12 w-full rounded-lg" />
+        </div>
+      </div>
+      <span className="sr-only">Loading...</span>
+    </div>
+  );
+}
+
+interface Group {
+  id: string;
+  name: string;
+  description: string | null;
+  image: string | null;
+  members: Array<{
+    user: {
+      id: string;
+      name: string | null;
+      image: string | null;
+    };
+  }>;
+  messages?: Array<{
+    content: string;
+    createdAt: Date | string;
+    sender: {
+      name: string | null;
+    };
+  }>;
+}
+
+interface DMUser {
+  id: string;
+  userId: string | null;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+  status: string;
+}
+
+interface DirectMessage {
+  id: string;
+  otherUser: DMUser;
+  lastMessage?: {
+    content: string;
+    createdAt: Date | string;
+    sender: {
+      id: string;
+      name: string | null;
+      image: string | null;
+    };
+  } | null;
+  unreadCount: number;
+  updatedAt: Date | string;
+}
+
+function ChatPageContent() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const selectedGroupId = searchParams.get('group');
+  const selectedDMId = searchParams.get('dm');
+
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/');
+      return;
+    }
+    if (!session) return;
+
+    const ac = new AbortController();
+    const { signal } = ac;
+
+    async function load() {
+      try {
+        const [userRes, groupsRes, dmsRes] = await Promise.all([
+          fetch('/api/users/me', { signal }),
+          fetch('/api/groups', { signal }),
+          fetch('/api/direct-messages', { signal }),
+        ]);
+        if (userRes.ok) setCurrentUser((await userRes.json()).user);
+        if (groupsRes.ok) setGroups((await groupsRes.json()).groups);
+        if (dmsRes.ok) setDirectMessages((await dmsRes.json()).directMessages || []);
+      } catch (e) {
+        if (e instanceof Error && e.name !== 'AbortError') console.error(e);
+      }
+    }
+
+    void load();
+    return () => ac.abort();
+  }, [session, status, router]);
+
+  if (status === 'loading') {
+    return <ChatSkeleton />;
+  }
+
+  if (!session) {
+    return null;
+  }
+
+  const selectedGroup = groups.find((g) => g.id === selectedGroupId);
+  const selectedDM = directMessages.find((dm) => dm.id === selectedDMId);
+
+  return (
+    <div className="flex flex-col h-full bg-background">
+      {/* Chat window area */}
+      <div className="flex-1 overflow-hidden flex flex-col">
+        {selectedGroup && currentUser ? (
+          <div className="flex-1 flex flex-col h-full bg-card">
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-card">
+              <h2 className="text-lg font-semibold">{selectedGroup.name}</h2>
+              <button
+                onClick={() => setIsSettingsModalOpen(true)}
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+                title="グループ設定"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            </div>
+            <ChatMessagesWindow
+              channelId={selectedGroup.id}
+              currentUserId={currentUser.id}
+              placeholder={`${selectedGroup.name}にメッセージを送信...`}
+            />
+          </div>
+        ) : selectedDM && currentUser ? (
+          <div className="flex-1 flex flex-col h-full bg-card">
+            <div className="flex items-center gap-3 px-4 py-3 border-b bg-card">
+              <Avatar
+                src={selectedDM.otherUser.image || undefined}
+                name={selectedDM.otherUser.name || selectedDM.otherUser.email || 'User'}
+                size="md"
+                status={selectedDM.otherUser.status as 'online' | 'offline' | 'away'}
+              />
+              <div>
+                <h2 className="text-lg font-semibold">
+                  {selectedDM.otherUser.name || selectedDM.otherUser.email || 'Unknown'}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  {selectedDM.otherUser.status === 'online' ? 'オンライン' : 'オフライン'}
+                </p>
+              </div>
+            </div>
+            <ChatMessagesWindow
+              channelId={selectedDM.id}
+              currentUserId={currentUser.id}
+              placeholder={`${selectedDM.otherUser.name || selectedDM.otherUser.email || 'Unknown'}にメッセージを送信...`}
+            />
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-muted-foreground mb-4">
+                {groups.length === 0 && directMessages.length === 0
+                  ? 'グループまたはDMを開始してください'
+                  : 'グループまたはDMを選択してください'}
+              </p>
+              {groups.length === 0 && (
+                <Link href="/groups/new">
+                  <Button>グループを作成</Button>
+                </Link>
+              )}
+              {directMessages.length === 0 && (
+                <div className="mt-2">
+                  <Link href="/friends">
+                    <Button variant="secondary">フレンドを探す</Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Modals */}
+      {selectedGroup && (
+        <GroupSettingsModal
+          isOpen={isSettingsModalOpen}
+          onClose={() => setIsSettingsModalOpen(false)}
+          groupId={selectedGroup.id}
+          groupName={selectedGroup.name}
+          groupDescription={selectedGroup.description || undefined}
+          currentUserId={currentUser?.id || ''}
+          onUpdated={() => {
+            fetchGroups();
+          }}
+        />
+      )}
+
+    </div>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<ChatSkeleton />}>
+      <ChatPageContent />
+    </Suspense>
+  );
+}

@@ -1,0 +1,342 @@
+// Prisma Schema for Next.js Chat Application
+// Feature-Sliced Design Compatible
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===================================
+// NextAuth.js Models
+// ===================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ===================================
+// User Entity
+// ===================================
+
+model User {
+  id            String    @id @default(cuid())
+  userId        String?   @unique // ユーザーID (表示用、変更可能)
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  password      String? // ハッシュ化されたパスワード (Credentials認証用)
+  status        String    @default("offline") // online, offline, away
+  lastSeenAt    DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts           Account[]
+  sessions           Session[]
+  sentMessages       Message[]          @relation("SentMessages")
+  groupMemberships   GroupMember[]
+  messageReads       MessageRead[]
+  sentFriendRequests UserFriend[]       @relation("SentFriendRequests")
+  receivedFriendRequests UserFriend[]   @relation("ReceivedFriendRequests")
+  notifications      Notification[]
+  createdGroups      Group[]            @relation("CreatedGroups")
+  dmAsUser1          DirectMessage[]    @relation("DMUser1")
+  dmAsUser2          DirectMessage[]    @relation("DMUser2")
+  sentDMMessages     DMMessage[]        @relation("SentDMMessages")
+  dmMessageReads     DMMessageRead[]
+  subscription       Subscription?
+
+  @@index([email])
+  @@index([userId])
+  @@index([status])
+  @@map("users")
+}
+
+// ===================================
+// Subscription Entity
+// ===================================
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  stripePriceId        String?
+  plan                 String    @default("free") // free, basic, premium
+  status               String    @default("active") // active, canceled, past_due, trialing
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripeCustomerId])
+  @@map("subscriptions")
+}
+
+// ===================================
+// Group Entity
+// ===================================
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  image       String?
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  createdBy User          @relation("CreatedGroups", fields: [createdById], references: [id])
+  members   GroupMember[]
+  messages  Message[]
+
+  @@index([createdById])
+  @@map("groups")
+}
+
+model GroupMember {
+  id       String   @id @default(cuid())
+  userId   String
+  groupId  String
+  role     String   @default("member") // admin, member
+  joinedAt DateTime @default(now())
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@index([userId])
+  @@index([groupId])
+  @@map("group_members")
+}
+
+// ===================================
+// Message Entity
+// ===================================
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  type      String   @default("text") // text, image, file
+  senderId  String
+  groupId   String?
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  sender      User               @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  group       Group?             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  attachments MessageAttachment[]
+  reads       MessageRead[]
+  notifications Notification[]
+
+  @@index([senderId])
+  @@index([groupId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+model MessageAttachment {
+  id        String   @id @default(cuid())
+  messageId String
+  url       String
+  type      String // image, file
+  fileName  String
+  fileSize  Int
+  createdAt DateTime @default(now())
+
+  // Relations
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@map("message_attachments")
+}
+
+model MessageRead {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+
+  // Relations
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+  @@map("message_reads")
+}
+
+// ===================================
+// Friend Relationship Entity
+// ===================================
+
+model UserFriend {
+  id        String   @id @default(cuid())
+  userId    String
+  friendId  String
+  status    String   @default("pending") // pending, accepted, blocked
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user   User @relation("SentFriendRequests", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("ReceivedFriendRequests", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+  @@index([userId])
+  @@index([friendId])
+  @@index([status])
+  @@map("user_friends")
+}
+
+// ===================================
+// Notification Entity
+// ===================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String // message, friend_request
+  title     String
+  content   String?
+  messageId String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message Message? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ===================================
+// Direct Message Entity
+// ===================================
+
+model DirectMessage {
+  id         String    @id @default(cuid())
+  user1Id    String    // 小さいIDを持つユーザー
+  user2Id    String    // 大きいIDを持つユーザー
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relations
+  user1       User     @relation("DMUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2       User     @relation("DMUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages    DMMessage[]
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@index([updatedAt])
+  @@map("direct_messages")
+}
+
+model DMMessage {
+  id              String        @id @default(cuid())
+  content         String
+  type            String        @default("text") // text, image, file
+  senderId        String
+  directMessageId String
+  isDeleted       Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  sender         User           @relation("SentDMMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  directMessage  DirectMessage  @relation(fields: [directMessageId], references: [id], onDelete: Cascade)
+  attachments    DMMessageAttachment[]
+  reads          DMMessageRead[]
+
+  @@index([senderId])
+  @@index([directMessageId])
+  @@index([createdAt])
+  @@map("dm_messages")
+}
+
+model DMMessageAttachment {
+  id          String   @id @default(cuid())
+  dmMessageId String
+  url         String
+  type        String // image, file
+  fileName    String
+  fileSize    Int
+  createdAt   DateTime @default(now())
+
+  // Relations
+  dmMessage DMMessage @relation(fields: [dmMessageId], references: [id], onDelete: Cascade)
+
+  @@index([dmMessageId])
+  @@map("dm_message_attachments")
+}
+
+model DMMessageRead {
+  id          String   @id @default(cuid())
+  dmMessageId String
+  userId      String
+  readAt      DateTime @default(now())
+
+  // Relations
+  dmMessage DMMessage @relation(fields: [dmMessageId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([dmMessageId, userId])
+  @@index([dmMessageId])
+  @@index([userId])
+  @@map("dm_message_reads")
+}
