@@ -68,7 +68,7 @@ jobs:
           PUSHER_KEY: "test"
           PUSHER_SECRET: "test"
           PUSHER_CLUSTER: "test"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: build-artifacts
           path: .next
@@ -92,7 +92,7 @@ jobs:
           DATABASE_URL: "file:./test.db"
           NEXTAUTH_SECRET: "test-secret-key-for-e2e"
           NEXTAUTH_URL: "http://localhost:3000"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report
