@@ -46,19 +46,20 @@ describe("chat read-status race-safety", () => {
     expect(source).toMatch(/reads:\s*\{\s*none:\s*\{\s*userId/);
   });
 
-  it("documents the `skipDuplicates` gap (current state, not enforced)", () => {
-    // Record whether the current implementation includes the flag or
-    // not. When the fix lands, flip this assertion to `.toContain(...)`
-    // and the guard becomes enforcing.
-    const hasSkipDuplicates = /skipDuplicates\s*:\s*true/.test(source);
-    // eslint-disable-next-line no-console
-    console.warn(
-      `[race-case] chat markAsRead \`skipDuplicates: true\`: ${hasSkipDuplicates ? "present" : "MISSING — concurrent readers may hit P2002 unique violation"}`,
+  it("passes `skipDuplicates: true` so concurrent readers don't hit P2002", () => {
+    // Both group (`messageRead`) and DM (`dMMessageRead`) bulk inserts
+    // must opt into duplicate-skipping; without it, a second racer
+    // crashes the request once the first has committed the rows.
+    const sliceAfter = (marker: string) => {
+      const start = source.indexOf(marker);
+      return start === -1 ? "" : source.slice(start, start + 500);
+    };
+    expect(sliceAfter("messageRead.createMany(")).toMatch(
+      /skipDuplicates\s*:\s*true/,
     );
-    // We don't assert hasSkipDuplicates === true because the fix is a
-    // separate concern — but we DO assert the unique index exists in
-    // the schema so the race path is at least guarded at the DB layer.
-    expect(typeof hasSkipDuplicates).toBe("boolean");
+    expect(sliceAfter("dMMessageRead.createMany(")).toMatch(
+      /skipDuplicates\s*:\s*true/,
+    );
   });
 
   it("runInParallel helper is wired for live-DB integration follow-up", async () => {

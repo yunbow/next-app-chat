@@ -370,6 +370,7 @@ export async function markAsRead(
           userId,
           readAt,
         })),
+        skipDuplicates: true,
       });
     }
   } else {
@@ -391,6 +392,7 @@ export async function markAsRead(
           userId,
           readAt,
         })),
+        skipDuplicates: true,
       });
     }
   }

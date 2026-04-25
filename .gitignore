@@ -43,6 +43,8 @@ storybook-static
 prisma/*.db
 prisma/*.db-journal
 
+public/uploads/
+
 # AI agents
 .claude/
 .cursor/
