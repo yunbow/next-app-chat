@@ -6,9 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite" // ローカル開発: SQLite
-  // provider = "postgresql" // 本番環境: PostgreSQL
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ===================================
