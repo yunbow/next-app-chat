@@ -1,7 +1,20 @@
-import "@testing-library/jest-dom";
-import { vi } from "vitest";
+// Seed env vars before any module that imports `@/lib/config/env`
+process.env.DATABASE_URL ??= "postgresql://test:test@localhost:5432/test";
+process.env.NEXTAUTH_SECRET ??= "test-secret-at-least-32-characters-long!!";
+process.env.NEXTAUTH_URL ??= "http://localhost:3000";
+process.env.NEXT_PUBLIC_APP_URL ??= "http://localhost:3000";
 
-// Mock Next.js router
+import { expect, afterEach, vi } from "vitest";
+import { cleanup } from "@testing-library/react";
+import * as matchers from "@testing-library/jest-dom/matchers";
+
+vi.mock("server-only", () => ({}));
+
+expect.extend(matchers);
+afterEach(() => {
+  cleanup();
+});
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
@@ -11,14 +24,17 @@ vi.mock("next/navigation", () => ({
   }),
   usePathname: () => "/",
   useSearchParams: () => new URLSearchParams(),
+  redirect: vi.fn(),
+  notFound: vi.fn(),
 }));
 
-// Mock NextAuth
-vi.mock("next-auth/react", () => ({
-  useSession: () => ({
-    data: null,
-    status: "unauthenticated",
-  }),
-  signIn: vi.fn(),
-  signOut: vi.fn(),
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
+  unstable_cache: <T extends (...args: unknown[]) => unknown>(fn: T) => fn,
+}));
+
+vi.mock("next/headers", () => ({
+  headers: () => Promise.resolve(new Headers({ "x-request-id": "test-req-id" })),
+  cookies: () => Promise.resolve({ get: vi.fn(), set: vi.fn(), delete: vi.fn() }),
 }));
