@@ -6,6 +6,7 @@ import { cn } from "@/shared/lib/utils";
 import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
 import { LPHeader } from "@/shared/ui/landing/LPHeader";
+import { LPFooter } from "@/shared/ui/landing/LPFooter";
 import { useTranslations } from "@/shared/lib/i18n";
 
 function SkipLink() {
@@ -48,6 +49,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     // isAuthenticated の場合は下のサイドバー付きレイアウトへ
   }
 
+  // LPヘッダーを使う public docs (terms / privacy / cookies / about):
+  // 認証状態に関わらず常に LPHeader + LPFooter を表示する。
+  if (useLPHeader) {
+    return (
+      <>
+        <SkipLink />
+        <LPHeader />
+        <main id="main-content">{children}</main>
+        <LPFooter />
+      </>
+    );
+  }
+
   // セッション確認中（保護されたページ）: ローディング表示でフラッシュを防止
   if (isLoading && !isPublicPage) {
     return (
@@ -71,7 +85,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               "flex-1",
               isChatPage
                 ? "overflow-hidden flex flex-col"
-                : "p-4 md:p-6 pb-20 md:pb-6"
+                : "p-4 pb-20 md:pb-4"
             )}
           >
             {children}
@@ -82,8 +96,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 未ログイン（その他 public pages）: LPヘッダー + コンテンツ
-  if (useLPHeader || isPublicPage) {
+  // 未ログイン（その他 public pages: login / register など）: LPヘッダーのみ
+  // (login/register ページは自前で LPFooter を描画している)
+  if (isPublicPage) {
     return (
       <>
         <SkipLink />

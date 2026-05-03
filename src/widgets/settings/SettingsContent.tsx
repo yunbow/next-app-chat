@@ -76,7 +76,7 @@ export function SettingsContent() {
   const currentColorVisionLabel = mounted ? colorVisionLabels[colorVisionMode] : "...";
 
   return (
-    <div className="container max-w-2xl py-6 space-y-6">
+    <div className="max-w-2xl space-y-6">
       <h1 className="text-2xl font-bold">{t("settings.title")}</h1>
 
       <div className="space-y-4">

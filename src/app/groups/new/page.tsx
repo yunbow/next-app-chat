@@ -122,7 +122,7 @@ export default function NewGroupPage() {
   if (!session) return null;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 md:px-6 py-6 md:py-8">
+    <div className="max-w-2xl">
       <div className="mb-6">
         <Link href="/groups" className="text-sm text-muted-foreground hover:text-foreground">
           ← グループ一覧へ

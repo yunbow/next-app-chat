@@ -64,7 +64,7 @@ export default function FriendsPage() {
   if (!session) return null;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 md:py-8">
+    <div className="max-w-3xl">
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold">フレンド管理</h1>
         <p className="text-sm text-muted-foreground mt-1">

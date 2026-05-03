@@ -39,7 +39,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
         setError(t("login.invalidCredentials"));
         setIsLoading(false);
       } else {
-        router.push("/chat");
+        router.push("/dashboard");
       }
     } catch {
       setError(t("login.failed"));
@@ -49,7 +49,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
 
   const handleOAuthSignIn = async (provider: "google" | "github") => {
     setIsLoading(true);
-    await signIn(provider, { callbackUrl: "/chat" });
+    await signIn(provider, { callbackUrl: "/dashboard" });
   };
 
   return (

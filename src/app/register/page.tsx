@@ -24,7 +24,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/chat");
+      router.push("/dashboard");
     }
   }, [status, router]);
 

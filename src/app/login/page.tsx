@@ -22,7 +22,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/chat");
+      router.push("/dashboard");
     }
   }, [status, router]);
 
@@ -42,7 +42,7 @@ export default function LoginPage() {
         setError(t("login.invalidCredentials"));
         setIsLoading(false);
       } else {
-        router.push("/chat");
+        router.push("/dashboard");
       }
     } catch {
       setError(t("login.failed"));
@@ -52,7 +52,7 @@ export default function LoginPage() {
 
   const handleOAuthSignIn = async (provider: "google" | "github") => {
     setIsLoading(true);
-    await signIn(provider, { callbackUrl: "/chat" });
+    await signIn(provider, { callbackUrl: "/dashboard" });
   };
 
   if (status === "loading") {

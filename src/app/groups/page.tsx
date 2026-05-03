@@ -59,7 +59,7 @@ export default function GroupsPage() {
   if (!session) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8">
+    <div className="max-w-4xl">
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">グループ</h1>
