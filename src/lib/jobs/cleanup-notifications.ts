@@ -26,7 +26,7 @@ export async function cleanupNotificationsJob(): Promise<void> {
 
     logger.info(`Notification cleanup job completed: ${result.count} notifications deleted`);
   } catch (error) {
-    logger.error("Notification cleanup job failed", error);
+    logger.error({ err: error }, "Notification cleanup job failed");
     throw error;
   }
 }
@@ -50,7 +50,7 @@ export async function cleanupOldUnreadNotifications(): Promise<void> {
 
     logger.info(`Old unread notification cleanup job completed: ${result.count} notifications deleted`);
   } catch (error) {
-    logger.error("Old unread notification cleanup job failed", error);
+    logger.error({ err: error }, "Old unread notification cleanup job failed");
     throw error;
   }
 }
@@ -67,7 +67,7 @@ export async function handleCronRequest(): Promise<Response> {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    logger.error("Cron job failed", error);
+    logger.error({ err: error }, "Cron job failed");
     return new Response(
       JSON.stringify({ success: false, error: String(error) }),
       {

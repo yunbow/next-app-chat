@@ -40,10 +40,10 @@ Prisma クライアントを生成する必要はありません。
 cp .env.example .env
 ```
 
-ローカル開発で**最低限必要な値**は次の 3 つです。
+ローカル開発で**最低限必要な値**は次のとおりです。
 
 ```env
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://app:app@localhost:54324/app?schema=public"
 NEXTAUTH_SECRET="<openssl rand -base64 32 で生成>"
 NEXTAUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
@@ -72,7 +72,7 @@ OAuth (Google/GitHub) や Pusher を使う場合は §7 を参照してくださ
 # マイグレーション適用 (既存マイグレーションを反映)
 npm run db:migrate:dev
 
-# 任意: シードデータの投入
+# シードデータの投入 (ローカル動作確認用のテストデータ込み)
 npm run db:seed
 ```
 
@@ -84,6 +84,56 @@ npm run prisma:studio
 ```
 
 > PostgreSQL に切り替える場合は §8 を参照してください。
+
+---
+
+## 4.1 シードの構成とモード
+
+シードは `prod` / `dev` の 2 モードに分かれており、`SEED_MODE` 環境変数で切り替えます。
+スクリプトは Windows PowerShell でも動くよう `cross-env` 経由で値を設定しています。
+
+```text
+prisma/
+  seed.ts            # エントリ (薄いディスパッチャ)
+  seeds/
+    common.ts        # prod/dev 共通のマスタ・参照データ (現状 no-op)
+    prod.ts          # 本番用: common のみ呼ぶ
+    dev.ts           # 開発用: ユーザー / グループ / メッセージ / フレンド
+```
+
+### シード実行コマンド
+
+| コマンド | 動作 | 用途 |
+| --- | --- | --- |
+| `npm run db:seed` | `SEED_MODE=dev` 固定 | ローカル既定 (動作確認用テストデータ込み) |
+| `npm run db:seed:dev` | `SEED_MODE=dev` 明示 | 開発用データを意図的に投入 |
+| `npm run db:seed:prod` | `SEED_MODE=prod` 明示 | 本番相当 (マスタのみ) を検証 |
+| `npx prisma db seed` | `SEED_MODE` 未指定 → `NODE_ENV` で判定 | `prisma migrate` 等が暗黙に呼ぶ経路。未設定時は `prod` 既定でフェイルセーフ |
+
+### 安全装置と冪等性
+
+- `NODE_ENV=production` かつ `SEED_MODE=dev` の組み合わせは起動時にエラーで拒否します。
+- `SEED_MODE` に `dev` / `prod` 以外を渡すと起動時にエラーになります。
+- `dev` シードは upsert および「件数 0 のときだけ作成」で書かれているため、何度実行しても重複しません。
+
+### 開発用テストデータ
+
+`npm run db:seed` を実行すると、以下のデータが投入されます (冪等)。
+
+- ユーザー 2 名: Alice / Bob
+- グループ 1 件 ("General Discussion"、Alice が admin、Bob が member)
+- グループ内メッセージ 6 件 (Alice 3 件 / Bob 3 件)
+- フレンド関係 1 件 (Alice → Bob、`accepted`)
+
+### 開発用ログイン情報
+
+| Email | Password |
+| --- | --- |
+| `alice@example.com` | `password123` |
+| `bob@example.com` | `password123` |
+
+> 上記の認証情報は **開発環境専用** です。本番環境ではこのシードは実行されません
+> (`NODE_ENV=production` で `db:seed`/`db:seed:dev` を起動すると拒否されます)。
 
 ---
 
@@ -223,7 +273,9 @@ NEXT_PUBLIC_PUSHER_CLUSTER="ap3"
 | `npm run test:e2e` | Playwright E2E |
 | `npm run db:migrate:dev` | マイグレーション適用 (開発用) |
 | `npm run db:migrate:status` | マイグレーション状態確認 |
-| `npm run db:seed` | シード投入 |
+| `npm run db:seed` | シード投入 (ローカル既定 = dev) |
+| `npm run db:seed:dev` | シード投入 (dev 明示) |
+| `npm run db:seed:prod` | シード投入 (prod 明示 — マスタのみ) |
 | `npm run prisma:studio` | Prisma Studio |
 
 ---
@@ -276,3 +328,128 @@ E2E は `npm run test:e2e` から実行してください。
 - [docs/ai-dev-os/](../ai-dev-os/) — 開発ガイドライン
 - `prisma/schema.prisma` — DB スキーマ
 - `.env.example` — 環境変数の一覧
+
+---
+
+## PostgreSQL 構築・運用手順
+
+このプロジェクトは独立した PostgreSQL コンテナを `docker-compose.yml` で持つ設計です。本プロジェクトの DB は **ホスト側ポート `54324`** で公開されます (他の `next-app-*` プロジェクトとは衝突しないよう個別に割り当て済み)。
+
+### 前提
+
+- **Docker Desktop** が起動していること (`docker version` が通る)
+- `.env` に `DATABASE_URL` が入っていること
+- `npm install` 完了
+
+### 1. PostgreSQL コンテナを起動
+
+プロジェクトのルートで:
+
+```powershell
+docker compose up -d
+```
+
+- `-d` でバックグラウンド起動
+- 初回はイメージ pull で 1〜2 分かかる
+- 2 回目以降は数秒で立ち上がる
+
+起動確認:
+
+```powershell
+docker compose ps
+```
+
+`STATUS` 列が `Up (healthy)` になっていれば OK (compose の healthcheck で `pg_isready` を見ている)。`(starting)` の間は接続失敗するので、healthy になるまで数秒待つ。
+
+### 2. マイグレーション適用
+
+スキーマを DB に反映 (初回 = テーブル作成、2 回目以降 = 差分適用):
+
+```powershell
+npm run db:migrate:dev
+```
+
+新しい migration を生成したいときは `--name` を渡す:
+
+```powershell
+npm run db:migrate:dev -- --name <name>
+```
+
+CI / 本番系では対話処理を伴わない deploy 系を使う:
+
+```powershell
+npm run db:migrate:deploy
+```
+
+### 3. SEED 投入 (任意)
+
+開発用テストデータを投入:
+
+```powershell
+npm run db:seed:dev
+```
+
+冪等なので何度実行しても重複しません。
+
+### 4. アプリ起動
+
+```powershell
+npm run dev
+```
+
+`http://localhost:3000` にアクセスして動作確認。
+
+### 5. データ確認・操作
+
+GUI で中身を見たい場合:
+
+```powershell
+npm run prisma:studio
+```
+
+`http://localhost:5555` で Prisma Studio が開きます。
+
+CLI で直接 psql に入りたい場合:
+
+```powershell
+docker compose exec db psql -U app -d app
+```
+
+### ライフサイクル運用
+
+| 操作 | コマンド | 備考 |
+| --- | --- | --- |
+| 停止 (データ保持) | `docker compose stop` | 次回 `start` で即復帰 |
+| 再開 | `docker compose start` | |
+| 完全停止＋コンテナ削除 | `docker compose down` | ボリュームは残る |
+| **DB を完全リセット** | `docker compose down -v` | ⚠ 全データ消失 |
+| ログ追跡 | `docker compose logs -f db` | エラー調査時 |
+
+ハマったときの定番リセット手順:
+
+```powershell
+docker compose down -v
+docker compose up -d
+npm run db:migrate:dev
+npm run db:seed:dev
+```
+
+### 複数プロジェクトを同時に起動する場合
+
+`docker-compose.yml` の `name:` フィールドが各プロジェクトで異なるため、コンテナは独立して並走できます。ホスト側ポートも 54321〜54342 で固有割当なので衝突しません。
+
+すべて起動するとメモリ消費が積み上がるので、使わないものは `docker compose stop` しておくのが無難です。
+
+全プロジェクトの DB を一覧:
+
+```powershell
+docker ps --filter "name=next-app-" --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}"
+```
+
+### トラブルシューティング
+
+| 症状 | 原因 | 対処 |
+| --- | --- | --- |
+| `port is already allocated` | 該当ポートが他のサービスで使用中 | `docker compose down`、または `netstat -ano \| Select-String "54324"` で犯人を特定 |
+| `P1001: Can't reach database server` | コンテナがまだ healthy でない、もしくは `.env` の `DATABASE_URL` のポートと `docker-compose.yml` の publish ポートが不一致 | healthcheck 完了を待つ / `.env` を確認 |
+| マイグレーションが破綻 | dev 環境で発生する典型 | `docker compose down -v` で DB をリセットしてから `npm run db:migrate:dev` |

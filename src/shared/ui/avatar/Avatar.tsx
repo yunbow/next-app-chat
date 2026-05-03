@@ -34,7 +34,7 @@ export const Avatar = ({
     away: 'bg-yellow-500',
   };
 
-  const imageUrl = getImageUrl(src) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || 'User')}`;
+  const imageUrl = getImageUrl(typeof src === 'string' ? src : undefined) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || 'User')}`;
 
   return (
     <div className={cn('relative inline-block', className)}>

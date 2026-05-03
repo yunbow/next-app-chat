@@ -1,22 +1,20 @@
-import type { NextAuthOptions } from 'next-auth'
-import { PrismaAdapter } from '@next-auth/prisma-adapter'
+import NextAuth, { type NextAuthConfig } from 'next-auth'
+import { PrismaAdapter } from '@auth/prisma-adapter'
 import GoogleProvider from 'next-auth/providers/google'
 import GitHubProvider from 'next-auth/providers/github'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import { prisma } from '@/shared/lib/db/prisma'
 import { env } from '@/shared/config/env'
 
-// ユニークなuserIdを生成する関数
 function generateUserId(): string {
-  return crypto.randomBytes(8).toString('hex');
+  return crypto.randomBytes(8).toString('hex')
 }
 
-export const authOptions: NextAuthOptions = {
+export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    // Google OAuth
     ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
       ? [
           GoogleProvider({
@@ -25,7 +23,6 @@ export const authOptions: NextAuthOptions = {
           }),
         ]
       : []),
-    // GitHub OAuth
     ...(env.GITHUB_ID && env.GITHUB_SECRET
       ? [
           GitHubProvider({
@@ -34,7 +31,6 @@ export const authOptions: NextAuthOptions = {
           }),
         ]
       : []),
-    // Credentials (Email/Password)
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -42,25 +38,21 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('メールアドレスとパスワードを入力してください')
+        const email = credentials?.email
+        const password = credentials?.password
+        if (typeof email !== 'string' || typeof password !== 'string') {
+          return null
         }
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email },
         })
-
         if (!user || !user.password) {
-          throw new Error('ユーザーが見つかりません')
+          return null
         }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
-
+        const isPasswordValid = await bcrypt.compare(password, user.password)
         if (!isPasswordValid) {
-          throw new Error('パスワードが正しくありません')
+          return null
         }
 
         return {
@@ -81,24 +73,24 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async createUser({ user }) {
-      // OAuth経由で作成されたユーザーにuserIdがない場合、生成して設定
+      if (!user.id) return
       const dbUser = await prisma.user.findUnique({
         where: { id: user.id },
         select: { userId: true },
-      });
+      })
 
       if (!dbUser?.userId) {
-        let userId = generateUserId();
-        let userIdExists = await prisma.user.findUnique({ where: { userId } });
+        let userId = generateUserId()
+        let userIdExists = await prisma.user.findUnique({ where: { userId } })
         while (userIdExists) {
-          userId = generateUserId();
-          userIdExists = await prisma.user.findUnique({ where: { userId } });
+          userId = generateUserId()
+          userIdExists = await prisma.user.findUnique({ where: { userId } })
         }
 
         await prisma.user.update({
           where: { id: user.id },
           data: { userId },
-        });
+        })
       }
     },
   },
@@ -110,8 +102,6 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      // `session.user.id` is declared via module augmentation in
-      // src/types/next-auth.d.ts; no `as any` cast required.
       if (session.user && token.id) {
         session.user.id = token.id as string
       }
@@ -120,3 +110,5 @@ export const authOptions: NextAuthOptions = {
   },
   secret: env.NEXTAUTH_SECRET,
 }
+
+export const { handlers, signIn, signOut, auth } = NextAuth(authConfig)

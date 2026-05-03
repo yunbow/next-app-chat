@@ -1,20 +1,19 @@
 "use server";
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/shared/lib/auth/options";
 import { prisma } from "@/shared/lib/db/prisma";
 import { updateProfileSchema, changePasswordSchema } from "../schema/user-schema";
 import type { ActionResult } from "@/lib/types/action-result";
 import { logger } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { handleActionError } from "@/lib/utils/error-handler";
+import { auth } from "@/shared/lib/auth/options";
 
 export async function updateProfileAction(
   data: unknown
 ): Promise<ActionResult> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return { success: false, error: "認証が必要です", code: "UNAUTHORIZED" };
     }
@@ -34,7 +33,7 @@ export async function updateProfileAction(
       data: parsed,
     });
 
-    logger.info("Profile updated", { userId: user.id });
+    logger.info({ userId: user.id }, "Profile updated");
     revalidatePath("/settings");
     return { success: true };
   } catch (error) {
@@ -46,7 +45,7 @@ export async function changePasswordAction(
   data: unknown
 ): Promise<ActionResult> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return { success: false, error: "認証が必要です", code: "UNAUTHORIZED" };
     }
@@ -75,7 +74,7 @@ export async function changePasswordAction(
       data: { password: hashedPassword },
     });
 
-    logger.info("Password changed", { userId: user.id });
+    logger.info({ userId: user.id }, "Password changed");
     return { success: true };
   } catch (error) {
     return handleActionError(error, { action: "changePassword" });
@@ -86,7 +85,7 @@ export async function updateUserStatusAction(
   status: "online" | "offline" | "away"
 ): Promise<ActionResult> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return { success: false, error: "認証が必要です", code: "UNAUTHORIZED" };
     }
@@ -107,7 +106,7 @@ export async function updateUserStatusAction(
       },
     });
 
-    logger.info("User status updated", { userId: user.id, status });
+    logger.info({ userId: user.id, status }, "User status updated");
     return { success: true };
   } catch (error) {
     return handleActionError(error, { action: "updateUserStatus" });

@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/shared/lib/auth/options';
 import { prisma } from '@/shared/lib/db/prisma';
+import { auth } from "@/shared/lib/auth/options";
 export const dynamic = 'force-dynamic';
 
 // メッセージを既読にする
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { messageId: string } }
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ messageId: string }> }) {
+  const params = await props.params;
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

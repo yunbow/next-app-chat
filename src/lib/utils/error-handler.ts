@@ -13,10 +13,10 @@ export function handleActionError(
   // Zodバリデーションエラー
   if (error instanceof ZodError) {
     const firstIssue = error.issues[0];
-    logger.warn("Validation error", {
+    logger.warn({
       issues: error.issues,
       ...context,
-    });
+    }, "Validation error");
     return {
       success: false,
       error: firstIssue.message,
@@ -27,11 +27,11 @@ export function handleActionError(
 
   // Prismaエラー
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    logger.error("Prisma error", {
+    logger.error({
       code: error.code,
       meta: error.meta,
       ...context,
-    });
+    }, "Prisma error");
 
     // 一意制約違反
     if (error.code === "P2002") {
@@ -69,11 +69,11 @@ export function handleActionError(
 
   // 一般的なエラー
   if (error instanceof Error) {
-    logger.error("Action error", {
+    logger.error({
       message: error.message,
       stack: error.stack,
       ...context,
-    });
+    }, "Action error");
     return {
       success: false,
       error: error.message || "エラーが発生しました",
@@ -82,7 +82,7 @@ export function handleActionError(
   }
 
   // 不明なエラー
-  logger.error("Unknown error", { error, ...context });
+  logger.error({ error, ...context }, "Unknown error");
   return {
     success: false,
     error: "予期しないエラーが発生しました",

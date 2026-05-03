@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/shared/lib/auth/options";
 import { notificationEmitter, NotificationData } from "@/lib/events/notification-emitter";
+import { auth } from "@/shared/lib/auth/options";
 export const dynamic = 'force-dynamic';
 
 /**
@@ -9,7 +8,7 @@ export const dynamic = 'force-dynamic';
  * リアルタイム通知をクライアントにストリーミング
  */
 export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.email) {
     return new Response("Unauthorized", { status: 401 });
   }

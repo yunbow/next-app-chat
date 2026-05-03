@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import { join } from "path";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/shared/lib/auth/options";
+import { auth } from "@/shared/lib/auth/options";
 export const dynamic = 'force-dynamic';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ path: string[] }> }) {
+  const params = await props.params;
   try {
     // 認証チェック（必要に応じて）
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session) {
       return new NextResponse("Unauthorized", { status: 401 });
     }

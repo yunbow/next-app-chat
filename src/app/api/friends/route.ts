@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/shared/lib/auth/options';
 import { prisma } from '@/shared/lib/db/prisma';
 import { z } from 'zod';
+import { auth } from "@/shared/lib/auth/options";
 export const dynamic = 'force-dynamic';
 
 const sendFriendRequestSchema = z.object({
@@ -12,7 +11,7 @@ const sendFriendRequestSchema = z.object({
 // フレンド一覧取得
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -77,7 +76,7 @@ export async function GET(req: NextRequest) {
 // フレンドリクエスト送信
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

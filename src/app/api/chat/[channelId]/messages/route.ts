@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { authOptions } from "@/shared/lib/auth/options";
 import { prisma } from "@/shared/lib/db/prisma";
 import {
   AccessDeniedError,
@@ -10,6 +8,7 @@ import {
   resolveChannel,
   sendMessage,
 } from "@/features/chat/services/chat-service";
+import { auth } from "@/shared/lib/auth/options";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +19,7 @@ const sendSchema = z.object({
 });
 
 async function authedUser() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.email) return null;
   return prisma.user.findUnique({ where: { email: session.user.email } });
 }
@@ -42,10 +41,8 @@ function errorResponse(error: unknown) {
   return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { channelId: string } }
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ channelId: string }> }) {
+  const params = await props.params;
   try {
     const user = await authedUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -66,10 +63,8 @@ export async function GET(
   }
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { channelId: string } }
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ channelId: string }> }) {
+  const params = await props.params;
   try {
     const user = await authedUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

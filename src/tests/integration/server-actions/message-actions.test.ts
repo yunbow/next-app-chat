@@ -1,17 +1,14 @@
+// @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createMessageAction, updateMessageAction, deleteMessageAction } from "@/features/chat/server/message-actions";
-
-// Mock Next.js modules
-vi.mock("next-auth", () => ({
-  getServerSession: vi.fn(),
-}));
+import { auth } from "@/shared/lib/auth/options";
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
 vi.mock("@/shared/lib/auth/options", () => ({
-  authOptions: {},
+  auth: vi.fn(),
 }));
 
 vi.mock("@/shared/lib/db/prisma", () => ({
@@ -38,7 +35,6 @@ vi.mock("@/lib/logger", () => ({
   },
 }));
 
-import { getServerSession } from "next-auth";
 import { prisma } from "@/shared/lib/db/prisma";
 
 describe("createMessageAction", () => {
@@ -47,7 +43,7 @@ describe("createMessageAction", () => {
   });
 
   it("should return error if not authenticated", async () => {
-    vi.mocked(getServerSession).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as never);
 
     const result = await createMessageAction({
       content: "Test message",
@@ -61,7 +57,7 @@ describe("createMessageAction", () => {
   });
 
   it("should return error if user not found", async () => {
-    vi.mocked(getServerSession).mockResolvedValue({
+    vi.mocked(auth).mockResolvedValue({
       user: { email: "test@example.com" },
     } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
@@ -78,7 +74,7 @@ describe("createMessageAction", () => {
   });
 
   it("should return error for invalid data", async () => {
-    vi.mocked(getServerSession).mockResolvedValue({
+    vi.mocked(auth).mockResolvedValue({
       user: { email: "test@example.com" },
     } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -95,7 +91,7 @@ describe("createMessageAction", () => {
   });
 
   it("should create message successfully", async () => {
-    vi.mocked(getServerSession).mockResolvedValue({
+    vi.mocked(auth).mockResolvedValue({
       user: { email: "test@example.com" },
     } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -122,7 +118,7 @@ describe("createMessageAction", () => {
   });
 
   it("should check group membership for group messages", async () => {
-    vi.mocked(getServerSession).mockResolvedValue({
+    vi.mocked(auth).mockResolvedValue({
       user: { email: "test@example.com" },
     } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -150,7 +146,7 @@ describe("updateMessageAction", () => {
   });
 
   it("should return error if not authenticated", async () => {
-    vi.mocked(getServerSession).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as never);
 
     const result = await updateMessageAction("message-1", {
       content: "Updated message",
@@ -160,7 +156,7 @@ describe("updateMessageAction", () => {
   });
 
   it("should return error if message not found", async () => {
-    vi.mocked(getServerSession).mockResolvedValue({
+    vi.mocked(auth).mockResolvedValue({
       user: { email: "test@example.com" },
     } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -177,7 +173,7 @@ describe("updateMessageAction", () => {
   });
 
   it("should return error if not owner (IDOR protection)", async () => {
-    vi.mocked(getServerSession).mockResolvedValue({
+    vi.mocked(auth).mockResolvedValue({
       user: { email: "test@example.com" },
     } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -200,7 +196,7 @@ describe("updateMessageAction", () => {
   });
 
   it("should update message successfully", async () => {
-    vi.mocked(getServerSession).mockResolvedValue({
+    vi.mocked(auth).mockResolvedValue({
       user: { email: "test@example.com" },
     } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -230,7 +226,7 @@ describe("deleteMessageAction", () => {
   });
 
   it("should return error if not owner (IDOR protection)", async () => {
-    vi.mocked(getServerSession).mockResolvedValue({
+    vi.mocked(auth).mockResolvedValue({
       user: { email: "test@example.com" },
     } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -251,7 +247,7 @@ describe("deleteMessageAction", () => {
   });
 
   it("should delete message successfully (soft delete)", async () => {
-    vi.mocked(getServerSession).mockResolvedValue({
+    vi.mocked(auth).mockResolvedValue({
       user: { email: "test@example.com" },
     } as any);
     vi.mocked(prisma.user.findUnique).mockResolvedValue({

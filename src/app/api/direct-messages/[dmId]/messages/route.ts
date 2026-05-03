@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/shared/lib/auth/options';
 import { prisma } from '@/shared/lib/db/prisma';
 import { getPusherServer, pusherChannels, pusherEvents } from '@/lib/pusher/server';
 import { isBlockedBetween } from '@/features/chat/services/chat-service';
+import { auth } from "@/shared/lib/auth/options";
 export const dynamic = 'force-dynamic';
 
 // GET: DMメッセージ一覧を取得
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { dmId: string } }
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ dmId: string }> }) {
+  const params = await props.params;
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -132,12 +129,10 @@ export async function GET(
 }
 
 // POST: 新しいDMメッセージを送信
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { dmId: string } }
-) {
+export async function POST(req: NextRequest, props: { params: Promise<{ dmId: string }> }) {
+  const params = await props.params;
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

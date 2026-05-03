@@ -1,143 +1,58 @@
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
 
-const prisma = new PrismaClient();
+const VALID_MODES = ['dev', 'prod'] as const;
+type SeedMode = (typeof VALID_MODES)[number];
 
-async function main() {
-  console.log('🌱 Seeding database...');
-
-  // テストユーザーを作成
-  const hashedPassword = await bcrypt.hash('password123', 10);
-
-  const user1 = await prisma.user.upsert({
-    where: { email: 'alice@example.com' },
-    update: {},
-    create: {
-      email: 'alice@example.com',
-      name: 'Alice',
-      password: hashedPassword,
-      status: 'online',
-      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice',
-    },
-  });
-
-  const user2 = await prisma.user.upsert({
-    where: { email: 'bob@example.com' },
-    update: {},
-    create: {
-      email: 'bob@example.com',
-      name: 'Bob',
-      password: hashedPassword,
-      status: 'online',
-      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bob',
-    },
-  });
-
-  const user3 = await prisma.user.upsert({
-    where: { email: 'charlie@example.com' },
-    update: {},
-    create: {
-      email: 'charlie@example.com',
-      name: 'Charlie',
-      password: hashedPassword,
-      status: 'offline',
-      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Charlie',
-    },
-  });
-
-  console.log('✅ Created users:', { user1, user2, user3 });
-
-  // グループを作成
-  const group1 = await prisma.group.create({
-    data: {
-      name: 'General Discussion',
-      description: 'A place for general conversation',
-      createdById: user1.id,
-      image: 'https://api.dicebear.com/7.x/shapes/svg?seed=General',
-      members: {
-        create: [
-          { userId: user1.id, role: 'admin' },
-          { userId: user2.id, role: 'member' },
-          { userId: user3.id, role: 'member' },
-        ],
-      },
-    },
-  });
-
-  const group2 = await prisma.group.create({
-    data: {
-      name: 'Project Team',
-      description: 'Team collaboration space',
-      createdById: user2.id,
-      image: 'https://api.dicebear.com/7.x/shapes/svg?seed=Project',
-      members: {
-        create: [
-          { userId: user1.id, role: 'member' },
-          { userId: user2.id, role: 'admin' },
-        ],
-      },
-    },
-  });
-
-  console.log('✅ Created groups:', { group1, group2 });
-
-  // サンプルメッセージを作成
-  await prisma.message.create({
-    data: {
-      content: 'Hello everyone! Welcome to our chat app.',
-      type: 'text',
-      senderId: user1.id,
-      groupId: group1.id,
-    },
-  });
-
-  await prisma.message.create({
-    data: {
-      content: 'Thanks Alice! Excited to be here.',
-      type: 'text',
-      senderId: user2.id,
-      groupId: group1.id,
-    },
-  });
-
-  await prisma.message.create({
-    data: {
-      content: 'Let\'s start working on the project!',
-      type: 'text',
-      senderId: user2.id,
-      groupId: group2.id,
-    },
-  });
-
-  console.log('✅ Created sample messages');
-
-  // フレンド関係を作成
-  await prisma.userFriend.create({
-    data: {
-      userId: user1.id,
-      friendId: user2.id,
-      status: 'accepted',
-    },
-  });
-
-  await prisma.userFriend.create({
-    data: {
-      userId: user1.id,
-      friendId: user3.id,
-      status: 'pending',
-    },
-  });
-
-  console.log('✅ Created friend relationships');
-
-  console.log('🎉 Seeding completed successfully!');
+function isValidMode(value: string): value is SeedMode {
+  return (VALID_MODES as readonly string[]).includes(value);
 }
 
-main()
-  .catch((e) => {
-    console.error('❌ Error during seeding:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
+function resolveMode(): SeedMode {
+  const explicit = process.env.SEED_MODE?.trim();
+  if (explicit) {
+    if (!isValidMode(explicit)) {
+      throw new Error(
+        `Invalid SEED_MODE: "${explicit}". Expected one of: ${VALID_MODES.join(', ')}`,
+      );
+    }
+    return explicit;
+  }
+  // SEED_MODE 未指定時は NODE_ENV から推定。
+  // development → dev、それ以外（production / undefined / その他）は prod 既定でフェイルセーフ。
+  return process.env.NODE_ENV === 'development' ? 'dev' : 'prod';
+}
+
+function assertSafety(mode: SeedMode): void {
+  if (process.env.NODE_ENV === 'production' && mode === 'dev') {
+    throw new Error(
+      'Refused to run "dev" seed under NODE_ENV=production. ' +
+        'Dev fixtures must not be inserted into a production database.',
+    );
+  }
+}
+
+async function main(): Promise<void> {
+  const mode = resolveMode();
+  assertSafety(mode);
+
+  const prisma = new PrismaClient();
+  console.log(`🌱 Seeding database (mode="${mode}", NODE_ENV="${process.env.NODE_ENV ?? ''}")`);
+
+  try {
+    if (mode === 'prod') {
+      const { seedProd } = await import('./seeds/prod');
+      await seedProd(prisma);
+    } else {
+      const { seedDev } = await import('./seeds/dev');
+      await seedDev(prisma);
+    }
+    console.log('🎉 Seeding completed successfully!');
+  } finally {
     await prisma.$disconnect();
-  });
+  }
+}
+
+main().catch((e) => {
+  console.error('❌ Error during seeding:', e);
+  process.exit(1);
+});

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/shared/lib/auth/options';
 import { prisma } from '@/shared/lib/db/prisma';
 import { z } from 'zod';
+import { auth } from "@/shared/lib/auth/options";
 export const dynamic = 'force-dynamic';
 
 const updateUserSchema = z.object({
@@ -14,7 +13,7 @@ const updateUserSchema = z.object({
 // 現在のユーザー情報取得
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -51,7 +50,7 @@ export async function GET() {
 // ユーザー情報更新（名前・ステータス）
 export async function PATCH(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

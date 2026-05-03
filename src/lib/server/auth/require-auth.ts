@@ -1,13 +1,12 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/shared/lib/auth/options";
 import { unauthorized, forbidden, FailureResponse } from "@/lib/errors/api-error";
+import { auth } from "@/shared/lib/auth/options";
 
 /**
  * 認証済みセッションを取得する
  * 未認証の場合はFailureResponseを返す
  */
 export async function requireAuth() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.email) {
     return unauthorized();
   }

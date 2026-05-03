@@ -1,19 +1,18 @@
 "use server";
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/shared/lib/auth/options";
 import { prisma } from "@/shared/lib/db/prisma";
 import { sendDMSchema, updateDMSchema } from "../schema/dm-schema";
 import type { ActionResult } from "@/lib/types/action-result";
 import { logger } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
 import { handleActionError } from "@/lib/utils/error-handler";
+import { auth } from "@/shared/lib/auth/options";
 
 export async function sendDirectMessageAction(
   data: unknown
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return { success: false, error: "認証が必要です", code: "UNAUTHORIZED" };
     }
@@ -90,11 +89,11 @@ export async function sendDirectMessageAction(
       },
     });
 
-    logger.info("Direct message sent", {
+    logger.info({
       userId: user.id,
       receiverId: parsed.receiverId,
       messageId: message.id,
-    });
+    }, "Direct message sent");
 
     revalidatePath("/chat");
     return { success: true, data: { id: message.id } };
@@ -113,7 +112,7 @@ export async function updateDirectMessageAction(
   data: unknown
 ): Promise<ActionResult> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return { success: false, error: "認証が必要です", code: "UNAUTHORIZED" };
     }
@@ -136,10 +135,10 @@ export async function updateDirectMessageAction(
     }
 
     if (message.senderId !== user.id) {
-      logger.warn("Unauthorized DM update attempt", {
+      logger.warn({
         userId: user.id,
         messageId: id,
-      });
+      }, "Unauthorized DM update attempt");
       return { success: false, error: "権限がありません", code: "UNAUTHORIZED" };
     }
 
@@ -150,7 +149,7 @@ export async function updateDirectMessageAction(
       data: parsed,
     });
 
-    logger.info("Direct message updated", { userId: user.id, messageId: id });
+    logger.info({ userId: user.id, messageId: id }, "Direct message updated");
     revalidatePath("/chat");
     return { success: true };
   } catch (error) {
@@ -162,7 +161,7 @@ export async function deleteDirectMessageAction(
   id: string
 ): Promise<ActionResult> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return { success: false, error: "認証が必要です", code: "UNAUTHORIZED" };
     }
@@ -185,10 +184,10 @@ export async function deleteDirectMessageAction(
     }
 
     if (message.senderId !== user.id) {
-      logger.warn("Unauthorized DM deletion attempt", {
+      logger.warn({
         userId: user.id,
         messageId: id,
-      });
+      }, "Unauthorized DM deletion attempt");
       return { success: false, error: "権限がありません", code: "UNAUTHORIZED" };
     }
 
@@ -197,7 +196,7 @@ export async function deleteDirectMessageAction(
       data: { isDeleted: true },
     });
 
-    logger.info("Direct message deleted", { userId: user.id, messageId: id });
+    logger.info({ userId: user.id, messageId: id }, "Direct message deleted");
     revalidatePath("/chat");
     return { success: true };
   } catch (error) {
@@ -209,7 +208,7 @@ export async function markDMAsReadAction(
   directMessageId: string
 ): Promise<ActionResult> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return { success: false, error: "認証が必要です", code: "UNAUTHORIZED" };
     }
@@ -232,10 +231,10 @@ export async function markDMAsReadAction(
     }
 
     if (directMessage.user1Id !== user.id && directMessage.user2Id !== user.id) {
-      logger.warn("Unauthorized DM read attempt", {
+      logger.warn({
         userId: user.id,
         directMessageId,
-      });
+      }, "Unauthorized DM read attempt");
       return { success: false, error: "権限がありません", code: "UNAUTHORIZED" };
     }
 
@@ -264,7 +263,7 @@ export async function markDMAsReadAction(
       });
     }
 
-    logger.info("DM marked as read", { userId: user.id, directMessageId });
+    logger.info({ userId: user.id, directMessageId }, "DM marked as read");
     return { success: true };
   } catch (error) {
     return handleActionError(error, { action: "markDMAsRead" });

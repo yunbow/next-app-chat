@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/shared/lib/auth/options';
 import { prisma } from '@/shared/lib/db/prisma';
 import { z } from 'zod';
+import { auth } from "@/shared/lib/auth/options";
 export const dynamic = 'force-dynamic';
 
 const updateFriendRequestSchema = z.object({
@@ -10,12 +9,10 @@ const updateFriendRequestSchema = z.object({
 });
 
 // フレンドリクエストの承認/拒否
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { friendId: string } }
-) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ friendId: string }> }) {
+  const params = await props.params;
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -115,12 +112,10 @@ export async function PATCH(
 }
 
 // フレンド削除
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { friendId: string } }
-) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ friendId: string }> }) {
+  const params = await props.params;
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

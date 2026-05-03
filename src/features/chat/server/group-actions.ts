@@ -1,17 +1,16 @@
 "use server";
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/shared/lib/auth/options";
 import { prisma } from "@/shared/lib/db/prisma";
 import { createGroupSchema, updateGroupSchema } from "../schema/message-schema";
 import type { ActionResult } from "@/lib/types/action-result";
 import { logger } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/shared/lib/auth/options";
 
 export async function createGroupAction(
   data: unknown
 ): Promise<ActionResult<{ id: string }>> {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.email) {
     return { success: false, error: "認証が必要です" };
   }
@@ -43,15 +42,15 @@ export async function createGroupAction(
       },
     });
 
-    logger.info("Group created successfully", {
+    logger.info({
       userId: user.id,
       groupId: group.id,
-    });
+    }, "Group created successfully");
 
     revalidatePath("/chat");
     return { success: true, data: { id: group.id } };
   } catch (error) {
-    logger.error("Error creating group", { err: error, userId: user.id });
+    logger.error({ err: error, userId: user.id }, "Error creating group");
     return { success: false, error: "グループの作成に失敗しました" };
   }
 }
@@ -60,7 +59,7 @@ export async function updateGroupAction(
   id: string,
   data: unknown
 ): Promise<ActionResult> {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.email) {
     return { success: false, error: "認証が必要です" };
   }
@@ -84,12 +83,12 @@ export async function updateGroupAction(
   });
 
   if (!membership || membership.role !== "admin") {
-    logger.warn("Unauthorized group update attempt", {
+    logger.warn({
       userId: user.id,
       groupId: id,
       action: "update_group",
       reason: "not_admin",
-    });
+    }, "Unauthorized group update attempt");
     return { success: false, error: "管理者権限が必要です" };
   }
 
@@ -104,11 +103,11 @@ export async function updateGroupAction(
       data: parsed.data,
     });
 
-    logger.info("Group updated", { userId: user.id, groupId: id });
+    logger.info({ userId: user.id, groupId: id }, "Group updated");
     revalidatePath("/chat");
     return { success: true };
   } catch (error) {
-    logger.error("Error updating group", { err: error, userId: user.id, groupId: id });
+    logger.error({ err: error, userId: user.id, groupId: id }, "Error updating group");
     return { success: false, error: "グループの更新に失敗しました" };
   }
 }
@@ -116,7 +115,7 @@ export async function updateGroupAction(
 export async function deleteGroupAction(
   id: string
 ): Promise<ActionResult> {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.email) {
     return { success: false, error: "認証が必要です" };
   }
@@ -140,12 +139,12 @@ export async function deleteGroupAction(
   }
 
   if (group.createdById !== user.id) {
-    logger.warn("Unauthorized group deletion attempt", {
+    logger.warn({
       userId: user.id,
       groupId: id,
       action: "delete_group",
       reason: "not_creator",
-    });
+    }, "Unauthorized group deletion attempt");
     return { success: false, error: "グループの作成者のみ削除できます" };
   }
 
@@ -154,11 +153,11 @@ export async function deleteGroupAction(
       where: { id },
     });
 
-    logger.info("Group deleted", { userId: user.id, groupId: id });
+    logger.info({ userId: user.id, groupId: id }, "Group deleted");
     revalidatePath("/chat");
     return { success: true };
   } catch (error) {
-    logger.error("Error deleting group", { err: error, userId: user.id, groupId: id });
+    logger.error({ err: error, userId: user.id, groupId: id }, "Error deleting group");
     return { success: false, error: "グループの削除に失敗しました" };
   }
 }
@@ -167,7 +166,7 @@ export async function addGroupMemberAction(
   groupId: string,
   userId: string
 ): Promise<ActionResult> {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.email) {
     return { success: false, error: "認証が必要です" };
   }
@@ -191,12 +190,12 @@ export async function addGroupMemberAction(
   });
 
   if (!membership || membership.role !== "admin") {
-    logger.warn("Unauthorized add member attempt", {
+    logger.warn({
       userId: currentUser.id,
       groupId,
       action: "add_member",
       reason: "not_admin",
-    });
+    }, "Unauthorized add member attempt");
     return { success: false, error: "管理者権限が必要です" };
   }
 
@@ -209,21 +208,21 @@ export async function addGroupMemberAction(
       },
     });
 
-    logger.info("Member added to group", {
+    logger.info({
       userId: currentUser.id,
       groupId,
       newMemberId: userId,
-    });
+    }, "Member added to group");
 
     revalidatePath("/chat");
     return { success: true };
   } catch (error) {
-    logger.error("Error adding member", {
+    logger.error({
       err: error,
       userId: currentUser.id,
       groupId,
       newMemberId: userId,
-    });
+    }, "Error adding member");
     return { success: false, error: "メンバーの追加に失敗しました" };
   }
 }

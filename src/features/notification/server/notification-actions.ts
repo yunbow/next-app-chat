@@ -1,19 +1,18 @@
 "use server";
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/shared/lib/auth/options";
 import { prisma } from "@/shared/lib/db/prisma";
 import { markAsReadSchema } from "../schema/notification-schema";
 import type { ActionResult } from "@/lib/types/action-result";
 import { logger } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
 import { handleActionError } from "@/lib/utils/error-handler";
+import { auth } from "@/shared/lib/auth/options";
 
 export async function markNotificationAsReadAction(
   data: unknown
 ): Promise<ActionResult> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return { success: false, error: "認証が必要です", code: "UNAUTHORIZED" };
     }
@@ -38,10 +37,10 @@ export async function markNotificationAsReadAction(
     }
 
     if (notification.userId !== user.id) {
-      logger.warn("Unauthorized notification access", {
+      logger.warn({
         userId: user.id,
         notificationId: parsed.notificationId,
-      });
+      }, "Unauthorized notification access");
       return { success: false, error: "権限がありません", code: "UNAUTHORIZED" };
     }
 
@@ -50,7 +49,7 @@ export async function markNotificationAsReadAction(
       data: { isRead: true },
     });
 
-    logger.info("Notification marked as read", { userId: user.id, notificationId: parsed.notificationId });
+    logger.info({ userId: user.id, notificationId: parsed.notificationId }, "Notification marked as read");
     revalidatePath("/notifications");
     return { success: true };
   } catch (error) {
@@ -60,7 +59,7 @@ export async function markNotificationAsReadAction(
 
 export async function markAllNotificationsAsReadAction(): Promise<ActionResult> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return { success: false, error: "認証が必要です", code: "UNAUTHORIZED" };
     }
@@ -81,7 +80,7 @@ export async function markAllNotificationsAsReadAction(): Promise<ActionResult> 
       data: { isRead: true },
     });
 
-    logger.info("All notifications marked as read", { userId: user.id });
+    logger.info({ userId: user.id }, "All notifications marked as read");
     revalidatePath("/notifications");
     return { success: true };
   } catch (error) {
@@ -93,7 +92,7 @@ export async function deleteNotificationAction(
   notificationId: string
 ): Promise<ActionResult> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return { success: false, error: "認証が必要です", code: "UNAUTHORIZED" };
     }
@@ -116,10 +115,10 @@ export async function deleteNotificationAction(
     }
 
     if (notification.userId !== user.id) {
-      logger.warn("Unauthorized notification deletion", {
+      logger.warn({
         userId: user.id,
         notificationId,
-      });
+      }, "Unauthorized notification deletion");
       return { success: false, error: "権限がありません", code: "UNAUTHORIZED" };
     }
 
@@ -127,7 +126,7 @@ export async function deleteNotificationAction(
       where: { id: notificationId },
     });
 
-    logger.info("Notification deleted", { userId: user.id, notificationId });
+    logger.info({ userId: user.id, notificationId }, "Notification deleted");
     revalidatePath("/notifications");
     return { success: true };
   } catch (error) {

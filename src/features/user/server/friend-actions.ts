@@ -1,19 +1,18 @@
 "use server";
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/shared/lib/auth/options";
 import { prisma } from "@/shared/lib/db/prisma";
 import { sendFriendRequestSchema, respondFriendRequestSchema } from "../schema/user-schema";
 import type { ActionResult } from "@/lib/types/action-result";
 import { logger } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
 import { handleActionError } from "@/lib/utils/error-handler";
+import { auth } from "@/shared/lib/auth/options";
 
 export async function sendFriendRequestAction(
   data: unknown
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return { success: false, error: "認証が必要です", code: "UNAUTHORIZED" };
     }
@@ -68,7 +67,7 @@ export async function sendFriendRequestAction(
       },
     });
 
-    logger.info("Friend request sent", { userId: user.id, friendId: parsed.friendId });
+    logger.info({ userId: user.id, friendId: parsed.friendId }, "Friend request sent");
     revalidatePath("/friends");
     return { success: true, data: { id: friendRequest.id } };
   } catch (error) {
@@ -85,7 +84,7 @@ export async function respondFriendRequestAction(
   data: unknown
 ): Promise<ActionResult> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return { success: false, error: "認証が必要です", code: "UNAUTHORIZED" };
     }
@@ -111,10 +110,10 @@ export async function respondFriendRequestAction(
 
     // リクエストの受信者であることを確認
     if (friendRequest.friendId !== user.id) {
-      logger.warn("Unauthorized friend request response", {
+      logger.warn({
         userId: user.id,
         requestId: parsed.requestId,
-      });
+      }, "Unauthorized friend request response");
       return { success: false, error: "権限がありません", code: "UNAUTHORIZED" };
     }
 
@@ -134,13 +133,13 @@ export async function respondFriendRequestAction(
         },
       });
 
-      logger.info("Friend request accepted", { userId: user.id, requestId: parsed.requestId });
+      logger.info({ userId: user.id, requestId: parsed.requestId }, "Friend request accepted");
     } else {
       await prisma.userFriend.delete({
         where: { id: parsed.requestId },
       });
 
-      logger.info("Friend request rejected", { userId: user.id, requestId: parsed.requestId });
+      logger.info({ userId: user.id, requestId: parsed.requestId }, "Friend request rejected");
     }
 
     revalidatePath("/friends");
@@ -154,7 +153,7 @@ export async function removeFriendAction(
   friendId: string
 ): Promise<ActionResult> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.email) {
       return { success: false, error: "認証が必要です", code: "UNAUTHORIZED" };
     }
@@ -177,7 +176,7 @@ export async function removeFriendAction(
       },
     });
 
-    logger.info("Friend removed", { userId: user.id, friendId });
+    logger.info({ userId: user.id, friendId }, "Friend removed");
     revalidatePath("/friends");
     return { success: true };
   } catch (error) {
