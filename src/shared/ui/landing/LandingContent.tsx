@@ -1,113 +1,256 @@
 "use client";
 
 import Link from "next/link";
+import {
+  Bell,
+  Image as ImageIcon,
+  LockKeyhole,
+  MessageSquare,
+  Moon,
+  Send,
+  Users,
+  Zap,
+} from "lucide-react";
 import { useTranslations } from "@/shared/lib/i18n";
+
+const featureItems = [
+  {
+    icon: Zap,
+    titleKey: "landing.features.realtime.title",
+    descriptionKey: "landing.features.realtime.description",
+    tone: "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300",
+  },
+  {
+    icon: Users,
+    titleKey: "landing.features.group.title",
+    descriptionKey: "landing.features.group.description",
+    tone: "bg-cyan-50 text-cyan-700 dark:bg-cyan-950/50 dark:text-cyan-300",
+  },
+  {
+    icon: MessageSquare,
+    titleKey: "landing.features.dm.title",
+    descriptionKey: "landing.features.dm.description",
+    tone: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
+  },
+  {
+    icon: Bell,
+    titleKey: "landing.features.notification.title",
+    descriptionKey: "landing.features.notification.description",
+    tone: "bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300",
+  },
+] as const;
+
+const workflowItems = [
+  {
+    titleKey: "landing.workflow.step1Title",
+    descriptionKey: "landing.workflow.step1Description",
+  },
+  {
+    titleKey: "landing.workflow.step2Title",
+    descriptionKey: "landing.workflow.step2Description",
+  },
+  {
+    titleKey: "landing.workflow.step3Title",
+    descriptionKey: "landing.workflow.step3Description",
+  },
+] as const;
+
+const trustItems = [
+  {
+    icon: LockKeyhole,
+    titleKey: "landing.trust.securityTitle",
+    descriptionKey: "landing.trust.securityDescription",
+  },
+  {
+    icon: ImageIcon,
+    titleKey: "landing.trust.imageTitle",
+    descriptionKey: "landing.trust.imageDescription",
+  },
+  {
+    icon: Moon,
+    titleKey: "landing.trust.themeTitle",
+    descriptionKey: "landing.trust.themeDescription",
+  },
+] as const;
 
 export function LandingContent() {
   const { t } = useTranslations();
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-4rem)]">
-      {/* Hero Section */}
-      <section className="flex-1 flex items-center justify-center px-4 py-16 md:py-24">
-        <div className="text-center max-w-3xl mx-auto space-y-6">
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 dark:text-white">
-            {t("landing.hero.title")}
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            {t("landing.hero.subtitle")}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Link href="/register">
-              <button className="px-8 py-3 text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+    <div className="min-h-[calc(100vh-4rem)] bg-background">
+      <section className="relative min-h-[calc(100svh-7rem)] overflow-hidden">
+        <img
+          src="/brand/landing-hero.jpg"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-slate-950/65 md:bg-[linear-gradient(90deg,rgba(2,6,23,0.90)_0%,rgba(2,6,23,0.72)_42%,rgba(2,6,23,0.22)_100%)]" />
+
+        <div className="relative mx-auto flex min-h-[calc(100svh-7rem)] max-w-7xl items-center px-4 py-16 sm:px-6 lg:px-8">
+          <div className="max-w-2xl text-white">
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm font-medium text-blue-100 backdrop-blur">
+              <span className="h-2 w-2 rounded-full bg-cyan-300" />
+              {t("landing.hero.badge")}
+            </p>
+            <h1 className="text-5xl font-bold leading-[1.02] md:text-7xl">
+              {t("landing.hero.title")}
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-slate-100 md:text-xl">
+              {t("landing.hero.subtitle")}
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/register"
+                className="inline-flex min-h-12 items-center justify-center rounded-lg bg-blue-600 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-blue-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
                 {t("landing.hero.cta")}
-              </button>
-            </Link>
-            <Link href="/login">
-              <button className="px-8 py-3 text-lg font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg transition-colors">
-                {t("common.login")}
-              </button>
-            </Link>
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex min-h-12 items-center justify-center rounded-lg border border-white/25 bg-white/10 px-6 py-3 text-base font-semibold text-white backdrop-blur transition-colors hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                {t("landing.hero.secondaryCta")}
+              </Link>
+            </div>
+
+            <dl className="mt-10 grid max-w-xl grid-cols-3 gap-3 text-white">
+              <div>
+                <dt className="text-xl font-bold sm:text-2xl">{t("landing.hero.statRealtime")}</dt>
+                <dd className="mt-1 text-xs leading-5 text-slate-300 sm:text-sm">
+                  {t("landing.hero.statRealtimeLabel")}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xl font-bold sm:text-2xl">{t("landing.hero.statModes")}</dt>
+                <dd className="mt-1 text-xs leading-5 text-slate-300 sm:text-sm">
+                  {t("landing.hero.statModesLabel")}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xl font-bold sm:text-2xl">{t("landing.hero.statSecure")}</dt>
+                <dd className="mt-1 text-xs leading-5 text-slate-300 sm:text-sm">
+                  {t("landing.hero.statSecureLabel")}
+                </dd>
+              </div>
+            </dl>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 px-4 bg-gray-50 dark:bg-gray-800/50">
-        <div className="container max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
-            {t("landing.features.title")}
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-              <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
-                {t("landing.features.realtime.title")}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                {t("landing.features.realtime.description")}
+      <section className="border-b border-border bg-background px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <h2 className="text-3xl font-bold leading-tight text-foreground md:text-4xl">
+              {t("landing.features.title")}
+            </h2>
+            <p className="mt-4 text-base leading-7 text-muted-foreground md:text-lg">
+              {t("landing.features.subtitle")}
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {featureItems.map(({ icon: Icon, titleKey, descriptionKey, tone }) => (
+              <article
+                key={titleKey}
+                className="rounded-lg border border-border bg-card p-5 text-card-foreground shadow-sm"
+              >
+                <div className={`mb-5 flex h-11 w-11 items-center justify-center rounded-lg ${tone}`}>
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <h3 className="text-base font-semibold">{t(titleKey)}</h3>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  {t(descriptionKey)}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-secondary/40 px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
+          <div>
+            <h2 className="text-3xl font-bold leading-tight text-foreground md:text-4xl">
+              {t("landing.workflow.title")}
+            </h2>
+            <p className="mt-4 text-base leading-7 text-muted-foreground md:text-lg">
+              {t("landing.workflow.subtitle")}
+            </p>
+          </div>
+
+          <div className="grid gap-4">
+            {workflowItems.map(({ titleKey, descriptionKey }, index) => (
+              <article
+                key={titleKey}
+                className="grid grid-cols-[2.75rem_1fr] gap-4 rounded-lg border border-border bg-card p-5 shadow-sm"
+              >
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <span className="text-sm font-bold">{index + 1}</span>
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-card-foreground">
+                    {t(titleKey)}
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {t(descriptionKey)}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-border bg-background px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-start">
+            <div>
+              <h2 className="text-3xl font-bold leading-tight text-foreground md:text-4xl">
+                {t("landing.trust.title")}
+              </h2>
+              <p className="mt-4 text-base leading-7 text-muted-foreground md:text-lg">
+                {t("landing.trust.subtitle")}
               </p>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-              <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
-                {t("landing.features.group.title")}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                {t("landing.features.group.description")}
-              </p>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-              <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
-                {t("landing.features.dm.title")}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                {t("landing.features.dm.description")}
-              </p>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-              <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
-                {t("landing.features.notification.title")}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                {t("landing.features.notification.description")}
-              </p>
+            <div className="grid gap-4 md:grid-cols-3">
+              {trustItems.map(({ icon: Icon, titleKey, descriptionKey }) => (
+                <article
+                  key={titleKey}
+                  className="rounded-lg border border-border bg-card p-5 shadow-sm"
+                >
+                  <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
+                  <h3 className="mt-5 text-base font-semibold text-card-foreground">
+                    {t(titleKey)}
+                  </h3>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                    {t(descriptionKey)}
+                  </p>
+                </article>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 px-4">
-        <div className="container max-w-2xl mx-auto text-center space-y-6">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {t("landing.hero.title")}
-          </h2>
-          <Link href="/register">
-            <button className="px-8 py-3 text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
-              {t("landing.hero.cta")}
-            </button>
+      <section className="bg-slate-950 px-4 py-16 text-white sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl font-bold leading-tight md:text-4xl">
+              {t("landing.cta.title")}
+            </h2>
+            <p className="mt-4 text-base leading-7 text-slate-300">
+              {t("landing.cta.description")}
+            </p>
+          </div>
+          <Link
+            href="/register"
+            className="inline-flex min-h-12 items-center justify-center rounded-lg bg-blue-600 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-blue-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            <Send className="mr-2 h-4 w-4" aria-hidden="true" />
+            {t("landing.hero.cta")}
           </Link>
         </div>
       </section>

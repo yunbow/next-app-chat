@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useTranslations, useLocale } from "@/shared/lib/i18n";
 import type { Locale } from "@/shared/lib/i18n/types";
+import { BrandLogo } from "@/shared/ui/common/BrandLogo";
 
 export function LPHeader() {
   const { t } = useTranslations();
@@ -48,14 +49,16 @@ export function LPHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-700 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-gray-900/95 dark:supports-[backdrop-filter]:bg-gray-900/60">
-      <div className="container flex h-16 items-center justify-between px-4 mx-auto">
-        <Link href="/" className="flex items-center space-x-2">
-          <span className="text-2xl font-bold text-gray-900 dark:text-white">
-            <span className="text-blue-600 dark:text-blue-400">💬</span> {t("common.appName")}
-          </span>
+      <div className="container mx-auto flex h-16 items-center justify-between gap-3 px-4">
+        <Link href="/" className="flex shrink-0 items-center space-x-2">
+          <BrandLogo
+            className="text-2xl font-bold text-gray-900 dark:text-white"
+            textClassName="hidden sm:inline"
+            text={t("common.appName")}
+          />
         </Link>
 
-        <nav className="flex items-center gap-2">
+        <nav className="flex min-w-0 items-center gap-1 sm:gap-2">
           {/* Language Dropdown */}
           <div ref={langRef} className="relative">
             <button
@@ -63,14 +66,14 @@ export function LPHeader() {
                 setIsLangOpen(!isLangOpen);
                 setIsThemeOpen(false);
               }}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+              className="flex items-center gap-1.5 rounded-md px-2 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 sm:px-3"
               aria-label={t("accessibility.selectLanguage")}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
               </svg>
-              <span>{locale === "ja" ? "日本語" : "English"}</span>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="hidden sm:inline">{locale === "ja" ? "日本語" : "English"}</span>
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
@@ -103,13 +106,13 @@ export function LPHeader() {
                 setIsThemeOpen(!isThemeOpen);
                 setIsLangOpen(false);
               }}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+              className="flex items-center gap-1.5 rounded-md px-2 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 sm:px-3"
               aria-label={t("accessibility.selectTheme")}
             >
               {mounted && (
                 <>
                   <span className="text-base leading-none">{currentTheme.icon}</span>
-                  <span>{currentTheme.label}</span>
+                  <span className="hidden sm:inline">{currentTheme.label}</span>
                 </>
               )}
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,14 +144,14 @@ export function LPHeader() {
 
           <Link
             href="/login"
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="px-2 py-2 text-sm font-medium text-gray-700 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white sm:px-4"
           >
             {t("common.login")}
           </Link>
 
           <Link
             href="/register"
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+            className="hidden rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:inline-flex"
           >
             {t("common.register")}
           </Link>

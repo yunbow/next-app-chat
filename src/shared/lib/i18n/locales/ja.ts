@@ -109,12 +109,21 @@ export type Translations = {
   };
   landing: {
     hero: {
+      badge: string;
       title: string;
       subtitle: string;
       cta: string;
+      secondaryCta: string;
+      statRealtime: string;
+      statRealtimeLabel: string;
+      statModes: string;
+      statModesLabel: string;
+      statSecure: string;
+      statSecureLabel: string;
     };
     features: {
       title: string;
+      subtitle: string;
       realtime: {
         title: string;
         description: string;
@@ -131,6 +140,30 @@ export type Translations = {
         title: string;
         description: string;
       };
+    };
+    workflow: {
+      title: string;
+      subtitle: string;
+      step1Title: string;
+      step1Description: string;
+      step2Title: string;
+      step2Description: string;
+      step3Title: string;
+      step3Description: string;
+    };
+    trust: {
+      title: string;
+      subtitle: string;
+      securityTitle: string;
+      securityDescription: string;
+      imageTitle: string;
+      imageDescription: string;
+      themeTitle: string;
+      themeDescription: string;
+    };
+    cta: {
+      title: string;
+      description: string;
     };
   };
   cookieConsent: {
@@ -300,12 +333,21 @@ export const ja: Translations = {
   // Landing Page
   landing: {
     hero: {
-      title: "リアルタイムでつながろう",
-      subtitle: "グループチャット、ダイレクトメッセージ、通知機能を備えたリアルタイムチャットアプリケーション",
+      badge: "リアルタイムチャットアプリ",
+      title: "Chat",
+      subtitle: "グループ、ダイレクトメッセージ、通知、画像共有をひとつにまとめた、日々の会話が進み続けるワークスペース。",
       cta: "無料で始める",
+      secondaryCta: "ログイン",
+      statRealtime: "即時",
+      statRealtimeLabel: "メッセージ配信",
+      statModes: "DM / Group",
+      statModesLabel: "会話モード",
+      statSecure: "Light / Dark",
+      statSecureLabel: "テーマ対応",
     },
     features: {
       title: "Chatでできること",
+      subtitle: "必要な会話、相手、通知にすぐ戻れるよう、チャット体験をシンプルに整理しています。",
       realtime: {
         title: "リアルタイム通信",
         description: "メッセージが即座に届く、快適なチャット体験",
@@ -322,6 +364,30 @@ export const ja: Translations = {
         title: "通知機能",
         description: "重要なメッセージを見逃さない通知システム",
       },
+    },
+    workflow: {
+      title: "会話の開始から見逃し防止まで、ひとつの流れで",
+      subtitle: "フレンドを見つけ、会話を始め、未読や通知から必要な場所へ戻れます。",
+      step1Title: "相手を見つける",
+      step1Description: "フレンド機能で会話相手を整理し、必要な人へすぐアクセスできます。",
+      step2Title: "会話を進める",
+      step2Description: "DMとグループチャットを切り替えながら、画像付きメッセージも送信できます。",
+      step3Title: "見逃さない",
+      step3Description: "未読管理と通知で、重要な更新をあとから追いやすくします。",
+    },
+    trust: {
+      title: "毎日使うための基本を丁寧に",
+      subtitle: "認証、レスポンシブUI、テーマ切り替えを備えた、実用向けのチャットアプリです。",
+      securityTitle: "認証つきアカウント",
+      securityDescription: "CredentialsとOAuthログインに対応し、利用者ごとの会話を扱えます。",
+      imageTitle: "画像メッセージ",
+      imageDescription: "テキストだけでは伝わりにくい内容も、画像付きで共有できます。",
+      themeTitle: "読みやすい表示",
+      themeDescription: "ライト/ダークテーマとレスポンシブUIで、端末に合わせて使えます。",
+    },
+    cta: {
+      title: "会話を、すぐ始められる場所へ",
+      description: "個人のDMからチームのグループチャットまで、Chatでまとめて管理できます。",
     },
   },
 

@@ -27,6 +27,7 @@ import {
   UserIcon,
   SettingsIcon,
 } from "@/shared/ui/common/icons";
+import { BrandLogo } from "@/shared/ui/common/BrandLogo";
 import { useTranslations } from "@/shared/lib/i18n";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -82,11 +83,17 @@ export function Sidebar() {
     >
       {/* ロゴ + 開閉ボタン */}
       <div className="flex items-center justify-between p-4 border-b">
-        {!isCollapsed && (
-          <Link href="/" className="text-xl font-bold" aria-label={t("accessibility.homeLink")}>
-            Chat
-          </Link>
-        )}
+        <Link
+          href="/"
+          className={cn("text-xl font-bold", isCollapsed && "mx-auto")}
+          aria-label={t("accessibility.homeLink")}
+        >
+          <BrandLogo
+            showText={!isCollapsed}
+            iconClassName="h-8 w-8"
+            text={t("common.appName")}
+          />
+        </Link>
         <Button
           variant="ghost"
           size="icon"

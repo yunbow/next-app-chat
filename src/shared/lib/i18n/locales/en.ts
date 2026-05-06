@@ -130,12 +130,21 @@ export const en: Translations = {
   // Landing Page
   landing: {
     hero: {
-      title: "Connect in Real-time",
-      subtitle: "Real-time chat application with group chat, direct messages, and notifications",
+      badge: "Real-time chat app",
+      title: "Chat",
+      subtitle: "A focused workspace for direct messages, group conversations, notifications, and image sharing that keeps daily communication moving.",
       cta: "Get started for free",
+      secondaryCta: "Login",
+      statRealtime: "Instant",
+      statRealtimeLabel: "message delivery",
+      statModes: "DM / Group",
+      statModesLabel: "conversation modes",
+      statSecure: "Light / Dark",
+      statSecureLabel: "theme support",
     },
     features: {
       title: "What you can do with Chat",
+      subtitle: "Chat keeps conversations, people, and notifications easy to scan so you can return to what matters quickly.",
       realtime: {
         title: "Real-time Communication",
         description: "Instant message delivery for smooth chat experience",
@@ -152,6 +161,30 @@ export const en: Translations = {
         title: "Notifications",
         description: "Never miss important messages with our notification system",
       },
+    },
+    workflow: {
+      title: "From first message to follow-up in one flow",
+      subtitle: "Find people, start conversations, and return through unread states and notifications.",
+      step1Title: "Find the right people",
+      step1Description: "Use friends to organize who you talk with and reach the right person quickly.",
+      step2Title: "Keep the conversation moving",
+      step2Description: "Switch between DMs and group chats, with image messages when text is not enough.",
+      step3Title: "Catch what changed",
+      step3Description: "Unread states and notifications make important updates easier to revisit.",
+    },
+    trust: {
+      title: "Built for everyday use",
+      subtitle: "Authentication, responsive UI, and theme controls make Chat practical for repeated daily workflows.",
+      securityTitle: "Authenticated accounts",
+      securityDescription: "Credentials and OAuth login support user-specific conversations.",
+      imageTitle: "Image messages",
+      imageDescription: "Share context visually when a plain text message is not enough.",
+      themeTitle: "Readable anywhere",
+      themeDescription: "Light and dark themes with responsive layouts adapt to your device.",
+    },
+    cta: {
+      title: "Give every conversation a clear place",
+      description: "From personal DMs to team group chats, Chat keeps communication organized in one app.",
     },
   },
 
