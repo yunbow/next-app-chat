@@ -68,12 +68,20 @@ const EnvSchema = z
     CRON_SECRET: optionalString(z.string().min(32)),
 
     NEXT_PUBLIC_APP_URL: optionalUrl(),
+
+    // Cloudflare R2 / MinIO (S3 互換) — 4 つすべてセットするか、すべて未設定にすること
+    R2_ACCESS_KEY_ID: optionalString(z.string().min(1)),
+    R2_SECRET_ACCESS_KEY: optionalString(z.string().min(1)),
+    R2_BUCKET_NAME: optionalString(z.string().min(1)),
+    R2_ENDPOINT: optionalString(z.string().min(1)),
+    R2_PUBLIC_URL: optionalString(z.string().min(1)),
   })
   .superRefine((v, ctx) => {
     const pairs: Array<[string, Array<string | undefined>]> = [
       ["Google OAuth", [v.GOOGLE_CLIENT_ID, v.GOOGLE_CLIENT_SECRET]],
       ["GitHub OAuth", [v.GITHUB_ID, v.GITHUB_SECRET]],
       ["Upstash Redis", [v.UPSTASH_REDIS_REST_URL, v.UPSTASH_REDIS_REST_TOKEN]],
+      ["R2 Storage", [v.R2_ACCESS_KEY_ID, v.R2_SECRET_ACCESS_KEY, v.R2_BUCKET_NAME, v.R2_ENDPOINT]],
       [
         "Pusher (server)",
         [v.PUSHER_APP_ID, v.PUSHER_KEY, v.PUSHER_SECRET, v.PUSHER_CLUSTER],

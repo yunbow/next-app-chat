@@ -31,8 +31,9 @@
     "db:seed:prod": "cross-env SEED_MODE=prod tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@hookform/resolvers": "^3.3.4",
     "@auth/prisma-adapter": "^2.11.1",
+    "@aws-sdk/client-s3": "^3.1043.0",
+    "@hookform/resolvers": "^3.3.4",
     "@prisma/client": "^6.19.2",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -66,6 +67,7 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.6",
     "@playwright/test": "^1.58.2",
+    "@tailwindcss/postcss": "^4.2.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -74,7 +76,6 @@
     "@types/nodemailer": "^7.0.11",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4.2.0",
     "@vitejs/plugin-react": "^5.1.4",
     "@vitest/coverage-v8": "^4.0.18",
     "cross-env": "^7.0.3",

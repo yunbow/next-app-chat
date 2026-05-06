@@ -112,11 +112,21 @@ export async function middleware(request: NextRequest) {
   // CSP ヘッダーの追加
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const isDev = process.env.NODE_ENV === "development";
+
+  // R2 / MinIO の公開 URL オリジンを img-src に追加
+  let r2ImgOrigin = "";
+  const r2PublicUrl = process.env.R2_PUBLIC_URL;
+  if (r2PublicUrl && !isDev) {
+    try {
+      r2ImgOrigin = ` ${new URL(r2PublicUrl).origin}`;
+    } catch {}
+  }
+
   const cspHeader = `
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""};
     style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://api.dicebear.com;
+    img-src 'self' blob: data: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://api.dicebear.com${isDev ? " http://localhost:9000" : ""}${r2ImgOrigin};
     font-src 'self';
     connect-src 'self'${isDev ? " ws://localhost:3000 ws://localhost:3001" : ""};
     object-src 'none';
