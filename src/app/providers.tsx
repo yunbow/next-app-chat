@@ -6,6 +6,7 @@ import type { Locale } from '@/shared/lib/i18n/types';
 import { FontSizeProvider } from '@/shared/lib/font-size';
 import { ColorVisionProvider } from '@/shared/lib/color-vision';
 import { ThemeProvider } from 'next-themes';
+import { ReactQueryProvider } from '@/lib/react-query/provider';
 
 export function Providers({
   children,
@@ -13,16 +14,18 @@ export function Providers({
   children: React.ReactNode;
 }) {
   return (
-    <SessionProvider>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <FontSizeProvider>
-          <ColorVisionProvider>
-            <LocaleProvider>
-              {children}
-            </LocaleProvider>
-          </ColorVisionProvider>
-        </FontSizeProvider>
-      </ThemeProvider>
-    </SessionProvider>
+    <ReactQueryProvider>
+      <SessionProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <FontSizeProvider>
+            <ColorVisionProvider>
+              <LocaleProvider>
+                {children}
+              </LocaleProvider>
+            </ColorVisionProvider>
+          </FontSizeProvider>
+        </ThemeProvider>
+      </SessionProvider>
+    </ReactQueryProvider>
   );
 }

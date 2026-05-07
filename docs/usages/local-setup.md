@@ -83,7 +83,7 @@ docker compose up -d
 | `db` | PostgreSQL | `localhost:54324` |
 | `minio` | S3 互換ストレージ (画像保存) | API: `localhost:9000` |
 | `minio-init` | バケット初期化 (起動後に終了) | — |
-| `stripe-mock` | Stripe API モックサーバー | `localhost:12111` |
+| `stripe-mock` | Stripe API モックサーバー | `localhost:12113` |
 
 MinIO の管理コンソールは `http://localhost:9001` で開けます (ID: `minioadmin` / PW: `minioadmin`)。
 
@@ -214,7 +214,7 @@ STRIPE_SECRET_KEY="sk_test_123"
 STRIPE_WEBHOOK_SECRET="whsec_test_localmocksecret1234567890ab"
 STRIPE_BASIC_PRICE_ID="price_mock_basic_monthly"
 STRIPE_PREMIUM_PRICE_ID="price_mock_premium_monthly"
-STRIPE_API_BASE_URL="http://localhost:12111"
+STRIPE_API_BASE_URL="http://localhost:12113"
 ```
 
 > **stripe-mock の制約**  
@@ -392,7 +392,7 @@ docker compose up -d     # 未起動なら起動
 
 ```env
 STRIPE_SECRET_KEY="sk_test_123"
-STRIPE_API_BASE_URL="http://localhost:12111"
+STRIPE_API_BASE_URL="http://localhost:12113"
 ```
 
 `STRIPE_API_BASE_URL` が未設定の場合、実際の Stripe API (`api.stripe.com`) に接続しようとします。  
