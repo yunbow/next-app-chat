@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { MessageItem } from "@/features/chat/ui/MessageItem";
 import { MessageInput } from "@/features/chat/ui/MessageInput";
 import { useChannel } from "@/lib/pusher/use-channel";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 interface UnifiedMessage {
   id: string;
@@ -131,8 +132,13 @@ export const ChatMessagesWindow = ({
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-muted/30">
-        <p className="text-muted-foreground">読み込み中...</p>
+      <div className="flex-1 overflow-y-auto p-4 bg-muted/30 space-y-4" role="status">
+        <Skeleton className="h-16 w-3/4 rounded-2xl" aria-hidden="true" />
+        <Skeleton className="h-12 w-2/3 rounded-2xl ml-auto" aria-hidden="true" />
+        <Skeleton className="h-16 w-3/4 rounded-2xl" aria-hidden="true" />
+        <Skeleton className="h-20 w-1/2 rounded-2xl ml-auto" aria-hidden="true" />
+        <Skeleton className="h-12 w-3/4 rounded-2xl" aria-hidden="true" />
+        <span className="sr-only">Loading...</span>
       </div>
     );
   }

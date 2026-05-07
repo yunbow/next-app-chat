@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/shared/lib/db/prisma';
 import { z } from 'zod';
 import { auth } from "@/shared/lib/auth/options";
+import { getUserPlan } from "@/shared/lib/stripe/get-user-plan";
+import { getLimits } from "@/shared/lib/stripe/plan-limits";
 export const dynamic = 'force-dynamic';
 
 const createGroupSchema = z.object({
@@ -98,6 +100,19 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // プランに基づくグループ作成数チェック
+    const plan = await getUserPlan(user.id);
+    const limits = getLimits(plan);
+    if (limits.maxGroups !== Infinity) {
+      const createdCount = await prisma.group.count({ where: { createdById: user.id } });
+      if (createdCount >= limits.maxGroups) {
+        return NextResponse.json(
+          { error: `グループは最大${limits.maxGroups}件まで作成できます（現在のプラン: ${plan}）`, code: 'GROUP_LIMIT_REACHED', limit: limits.maxGroups, plan },
+          { status: 403 }
+        );
+      }
     }
 
     const body = await req.json();

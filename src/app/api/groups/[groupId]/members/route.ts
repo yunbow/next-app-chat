@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/shared/lib/db/prisma';
 import { z } from 'zod';
 import { auth } from "@/shared/lib/auth/options";
+import { getUserPlan } from "@/shared/lib/stripe/get-user-plan";
+import { getLimits } from "@/shared/lib/stripe/plan-limits";
 export const dynamic = 'force-dynamic';
 
 const addMemberSchema = z.object({
@@ -52,6 +54,19 @@ export async function POST(req: NextRequest, props: { params: Promise<{ groupId:
         { error: 'Only admins can add members' },
         { status: 403 }
       );
+    }
+
+    // プランに基づくメンバー数チェック（グループ作成者のプランを参照）
+    const plan = await getUserPlan(group.createdById);
+    const limits = getLimits(plan);
+    if (limits.maxMembersPerGroup !== Infinity) {
+      const memberCount = await prisma.groupMember.count({ where: { groupId } });
+      if (memberCount >= limits.maxMembersPerGroup) {
+        return NextResponse.json(
+          { error: `このグループのメンバーは最大${limits.maxMembersPerGroup}人までです（グループ作成者のプラン: ${plan}）`, code: 'MEMBER_LIMIT_REACHED', limit: limits.maxMembersPerGroup, plan },
+          { status: 403 }
+        );
+      }
     }
 
     const body = await req.json();

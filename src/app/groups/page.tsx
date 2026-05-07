@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/shared/ui/button/Button";
 import { getImageUrl } from "@/lib/utils/image-url";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 interface Group {
   id: string;
@@ -50,8 +51,21 @@ export default function GroupsPage() {
 
   if (status === "loading" || isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
+      <div className="max-w-4xl" role="status">
+        <div className="flex items-start justify-between mb-6" aria-hidden="true">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <Skeleton className="h-10 w-36 rounded-lg" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" aria-hidden="true">
+          <Skeleton className="h-28 rounded-lg" />
+          <Skeleton className="h-28 rounded-lg" />
+          <Skeleton className="h-28 rounded-lg" />
+          <Skeleton className="h-28 rounded-lg" />
+        </div>
+        <span className="sr-only">Loading...</span>
       </div>
     );
   }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { FriendsView } from "@/widgets/friend/FriendsView";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 export default function FriendsPage() {
   const { data: session, status } = useSession();
@@ -55,8 +56,23 @@ export default function FriendsPage() {
 
   if (status === "loading" || !currentUserId) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
+      <div className="max-w-3xl" role="status">
+        <div className="mb-6 space-y-2" aria-hidden="true">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <div className="border rounded-lg overflow-hidden" aria-hidden="true">
+          <div className="border-b p-3 flex gap-2">
+            <Skeleton className="h-10 flex-1 rounded-lg" />
+            <Skeleton className="h-10 w-24 rounded-lg" />
+          </div>
+          <div className="divide-y">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        </div>
+        <span className="sr-only">Loading...</span>
       </div>
     );
   }

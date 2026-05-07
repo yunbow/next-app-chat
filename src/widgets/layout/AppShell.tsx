@@ -8,6 +8,7 @@ import { MobileNav } from "./MobileNav";
 import { LPHeader } from "@/shared/ui/landing/LPHeader";
 import { LPFooter } from "@/shared/ui/landing/LPFooter";
 import { useTranslations } from "@/shared/lib/i18n";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 function SkipLink() {
   const { t } = useTranslations();
@@ -65,8 +66,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // セッション確認中（保護されたページ）: ローディング表示でフラッシュを防止
   if (isLoading && !isPublicPage) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
+      <div className="flex min-h-screen" role="status">
+        <div className="hidden md:flex w-64 shrink-0 border-r flex-col p-4 gap-4" aria-hidden="true">
+          <Skeleton className="h-8 w-36" />
+          <div className="mt-2 space-y-1">
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+          </div>
+        </div>
+        <div className="flex-1 p-6 space-y-6" aria-hidden="true">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Skeleton className="h-24 rounded-lg" />
+            <Skeleton className="h-24 rounded-lg" />
+            <Skeleton className="h-24 rounded-lg" />
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-16 w-full rounded-lg" />
+            <Skeleton className="h-16 w-full rounded-lg" />
+            <Skeleton className="h-16 w-full rounded-lg" />
+          </div>
+        </div>
+        <span className="sr-only">Loading...</span>
       </div>
     );
   }

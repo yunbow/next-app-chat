@@ -8,6 +8,39 @@ import { GroupSettingsModal } from '@/widgets/chat/GroupSettingsModal';
 import Link from 'next/link';
 import { Button } from '@/shared/ui/button/Button';
 import { Avatar } from '@/shared/ui/avatar/Avatar';
+import { Skeleton } from '@/shared/ui/skeleton';
+
+function ChatSkeleton() {
+  return (
+    <div className="flex h-full" role="status">
+      <div className="w-80 border-r p-4 space-y-4" aria-hidden="true">
+        <Skeleton className="h-10 w-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-16 w-full rounded-lg" />
+        </div>
+      </div>
+      <div className="flex-1 flex flex-col" aria-hidden="true">
+        <div className="border-b p-4">
+          <Skeleton className="h-6 w-48" />
+        </div>
+        <div className="flex-1 p-4 space-y-4">
+          <Skeleton className="h-20 w-3/4 rounded-lg" />
+          <Skeleton className="h-20 w-2/3 rounded-lg ml-auto" />
+          <Skeleton className="h-20 w-3/4 rounded-lg" />
+          <Skeleton className="h-20 w-2/3 rounded-lg ml-auto" />
+        </div>
+        <div className="border-t p-4">
+          <Skeleton className="h-12 w-full rounded-lg" />
+        </div>
+      </div>
+      <span className="sr-only">Loading...</span>
+    </div>
+  );
+}
 
 interface Group {
   id: string;
@@ -114,11 +147,7 @@ function ChatPageContent() {
   }, [session, status, router]);
 
   if (status === 'loading') {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
-      </div>
-    );
+    return <ChatSkeleton />;
   }
 
   if (!session) {
@@ -223,11 +252,7 @@ function ChatPageContent() {
 
 export default function ChatPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
-      </div>
-    }>
+    <Suspense fallback={<ChatSkeleton />}>
       <ChatPageContent />
     </Suspense>
   );

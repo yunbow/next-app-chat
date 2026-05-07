@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/shared/ui/button/Button";
 import { Input } from "@/shared/ui/input/Input";
 import { Avatar } from "@/shared/ui/avatar/Avatar";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 interface CurrentUser {
   id: string;
@@ -104,8 +105,31 @@ export default function ProfileEditPage() {
 
   if (authStatus === "loading" || isFetching || !currentUser) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
+      <div className="max-w-2xl" role="status">
+        <div className="mb-6 space-y-2" aria-hidden="true">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <div className="space-y-6" aria-hidden="true">
+          <div className="flex justify-center">
+            <Skeleton className="h-20 w-20 rounded-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+          </div>
+        </div>
+        <span className="sr-only">Loading...</span>
       </div>
     );
   }

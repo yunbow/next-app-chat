@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { Avatar } from "@/shared/ui/avatar/Avatar";
 import { Button } from "@/shared/ui/button/Button";
 import { cn } from "@/shared/lib/utils/cn";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 interface Notification {
   id: string;
@@ -120,8 +121,20 @@ export default function NotificationsPage() {
 
   if (status === "loading" || isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
+      <div className="max-w-3xl" role="status">
+        <div className="flex items-start justify-between mb-6" aria-hidden="true">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-4 w-40" />
+          </div>
+        </div>
+        <div className="space-y-3" aria-hidden="true">
+          <Skeleton className="h-20 w-full rounded-lg" />
+          <Skeleton className="h-20 w-full rounded-lg" />
+          <Skeleton className="h-20 w-full rounded-lg" />
+          <Skeleton className="h-20 w-full rounded-lg" />
+        </div>
+        <span className="sr-only">Loading...</span>
       </div>
     );
   }

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Avatar } from "@/shared/ui/avatar/Avatar";
 import { MessageSquareIcon, UsersIcon, BellIcon } from "@/shared/ui/common/icons";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 interface GroupSummary {
   id: string;
@@ -78,8 +79,32 @@ export default function DashboardPage() {
 
   if (status === "loading" || isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
+      <div className="max-w-5xl space-y-6" role="status">
+        <div className="space-y-2" aria-hidden="true">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-40" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" aria-hidden="true">
+          <Skeleton className="h-24 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
+        </div>
+        <div className="space-y-3" aria-hidden="true">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-16 w-full rounded-lg" />
+        </div>
+        <div className="space-y-3" aria-hidden="true">
+          <Skeleton className="h-6 w-24" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Skeleton className="h-14 rounded-lg" />
+            <Skeleton className="h-14 rounded-lg" />
+            <Skeleton className="h-14 rounded-lg" />
+            <Skeleton className="h-14 rounded-lg" />
+          </div>
+        </div>
+        <span className="sr-only">Loading...</span>
       </div>
     );
   }

@@ -200,6 +200,32 @@ export type Translations = {
     loginHistoryDescription: string;
     changePassword: string;
     changePasswordDescription: string;
+    subscription: string;
+    subscriptionDescription: string;
+  };
+  billing: {
+    title: string;
+    currentPlan: string;
+    upgrade: string;
+    downgrade: string;
+    manage: string;
+    currentBadge: string;
+    renewsAt: string;
+    cancelAt: string;
+    successMessage: string;
+    canceledMessage: string;
+    freePlan: string;
+    basicPlan: string;
+    premiumPlan: string;
+    freePlanDescription: string;
+    basicPlanDescription: string;
+    premiumPlanDescription: string;
+    freePlanPrice: string;
+    basicPlanPrice: string;
+    premiumPlanPrice: string;
+    redirecting: string;
+    portalError: string;
+    checkoutError: string;
   };
 };
 
@@ -430,5 +456,32 @@ export const ja: Translations = {
     loginHistoryDescription: "最近のログイン履歴を確認",
     changePassword: "パスワード変更",
     changePasswordDescription: "パスワードを変更",
+    subscription: "サブスクリプション",
+    subscriptionDescription: "現在のプランと請求情報の管理",
+  },
+
+  billing: {
+    title: "サブスクリプション",
+    currentPlan: "現在のプラン",
+    upgrade: "アップグレード",
+    downgrade: "ダウングレード",
+    manage: "プランを管理",
+    currentBadge: "現在のプラン",
+    renewsAt: "次回更新日: {date}",
+    cancelAt: "解約予定日: {date}",
+    successMessage: "サブスクリプションが更新されました",
+    canceledMessage: "サブスクリプションの変更がキャンセルされました",
+    freePlan: "Free",
+    basicPlan: "Basic",
+    premiumPlan: "Premium",
+    freePlanDescription: "基本機能を無料でご利用いただけます",
+    basicPlanDescription: "より多くの機能とストレージをご利用いただけます",
+    premiumPlanDescription: "すべての機能を制限なくご利用いただけます",
+    freePlanPrice: "無料",
+    basicPlanPrice: "$9/月",
+    premiumPlanPrice: "$19/月",
+    redirecting: "決済ページへ移動中...",
+    portalError: "ポータルの読み込みに失敗しました",
+    checkoutError: "決済の開始に失敗しました",
   },
 };

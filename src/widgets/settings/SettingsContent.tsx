@@ -3,18 +3,49 @@
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
+import { Skeleton } from "@/shared/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { Sun, Moon, Monitor, Globe, ChevronDown, Type, Eye, User, History, KeyRound } from "lucide-react";
+import { Sun, Moon, Monitor, Globe, ChevronDown, Type, Eye, User, History, KeyRound, Crown, Zap, Star } from "lucide-react";
 import { useLocale, useTranslations } from "@/shared/lib/i18n";
 import { useFontSize, type FontSize } from "@/shared/lib/font-size";
 import { useColorVision, type ColorVisionMode } from "@/shared/lib/color-vision";
+
+type Plan = "free" | "basic" | "premium";
+
+type Subscription = {
+  plan: Plan;
+  status: string;
+};
+
+const PLAN_BADGE_COLORS: Record<Plan, string> = {
+  free: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  basic: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  premium: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+};
+
+const PLAN_ICON_COLORS: Record<Plan, string> = {
+  free: "text-slate-500",
+  basic: "text-blue-500",
+  premium: "text-amber-500",
+};
+
+function PlanBadge({ plan }: { plan: Plan }) {
+  const Icon = plan === "premium" ? Crown : plan === "basic" ? Zap : Star;
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${PLAN_BADGE_COLORS[plan]}`}>
+      <Icon className={`h-3 w-3 ${PLAN_ICON_COLORS[plan]}`} />
+      {plan.charAt(0).toUpperCase() + plan.slice(1)}
+    </span>
+  );
+}
 
 // useSyncExternalStore用のマウント状態管理
 const emptySubscribe = () => () => {};
@@ -27,6 +58,16 @@ export function SettingsContent() {
   const { theme, setTheme } = useTheme();
   const { fontSize, setFontSize } = useFontSize();
   const { colorVisionMode, setColorVisionMode } = useColorVision();
+
+  const { data: subData, isLoading: subLoading } = useQuery<Subscription>({
+    queryKey: ["subscription"],
+    queryFn: async () => {
+      const res = await fetch("/api/billing/subscription");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const json = await res.json();
+      return json.subscription;
+    },
+  });
 
   const mounted = useSyncExternalStore(
     emptySubscribe,
@@ -80,6 +121,26 @@ export function SettingsContent() {
       <h1 className="text-2xl font-bold">{t("settings.title")}</h1>
 
       <div className="space-y-4">
+        {/* サブスクリプション */}
+        <Link href="/settings/billing" className="block">
+          <Card className="hover:bg-accent transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Crown className="h-5 w-5" />
+                  {t("settings.subscription")}
+                </span>
+                {subLoading ? (
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                ) : (
+                  <PlanBadge plan={subData?.plan ?? "free"} />
+                )}
+              </CardTitle>
+              <CardDescription>{t("settings.subscriptionDescription")}</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+
         {/* 外観設定 */}
         <Card>
           <CardHeader>

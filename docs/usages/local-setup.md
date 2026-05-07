@@ -83,6 +83,7 @@ docker compose up -d
 | `db` | PostgreSQL | `localhost:54324` |
 | `minio` | S3 互換ストレージ (画像保存) | API: `localhost:9000` |
 | `minio-init` | バケット初期化 (起動後に終了) | — |
+| `stripe-mock` | Stripe API モックサーバー | `localhost:12111` |
 
 MinIO の管理コンソールは `http://localhost:9001` で開けます (ID: `minioadmin` / PW: `minioadmin`)。
 
@@ -201,6 +202,92 @@ NEXT_PUBLIC_PUSHER_KEY="..."
 NEXT_PUBLIC_PUSHER_CLUSTER="ap3"
 ```
 
+### 7.4 Stripe (サブスクリプション決済)
+
+#### ローカル開発 — stripe-mock を使う (デフォルト)
+
+`docker compose up -d` で `stripe-mock` コンテナが自動起動します。  
+`.env.example` のデフォルト値をそのまま使えば追加設定は不要です。
+
+```env
+STRIPE_SECRET_KEY="sk_test_123"
+STRIPE_WEBHOOK_SECRET="whsec_test_localmocksecret1234567890ab"
+STRIPE_BASIC_PRICE_ID="price_mock_basic_monthly"
+STRIPE_PREMIUM_PRICE_ID="price_mock_premium_monthly"
+STRIPE_API_BASE_URL="http://localhost:12111"
+```
+
+> **stripe-mock の制約**  
+> stripe-mock は Stripe API 呼び出し (Checkout セッション作成・Customer Portal 等) には応答しますが、  
+> Webhook イベントは自動送信されません。Webhook を手元でテストするには後述の Stripe CLI を使います。
+
+**Checkout フローの確認方法:**
+
+1. `npm run dev` でアプリを起動
+2. `/settings/billing` でプランのアップグレードボタンを押す
+3. `POST /api/billing/checkout` が stripe-mock に接続し、モック用 Checkout URL が返る
+4. (モックの URL は実際には決済画面を開かないため、Webhook は手動でトリガーする)
+
+#### Webhook のローカルテスト — Stripe CLI を使う
+
+stripe-mock 環境でも、実際の Webhook 受信フローをテストしたい場合は Stripe CLI を併用します。
+
+**前提: Stripe CLI のインストール**
+
+```bash
+# macOS (Homebrew)
+brew install stripe/stripe-cli/stripe
+
+# Windows (Scoop)
+scoop bucket add stripe https://github.com/stripe/scoop-stripe-cli.git
+scoop install stripe
+
+# その他: https://stripe.com/docs/stripe-cli#install
+```
+
+**Webhook フォワードの起動:**
+
+```bash
+stripe listen --forward-to http://localhost:3000/api/billing/webhook
+```
+
+初回実行時に表示される `whsec_...` を `.env` の `STRIPE_WEBHOOK_SECRET` に設定し、開発サーバーを再起動してください。
+
+```env
+STRIPE_WEBHOOK_SECRET="whsec_<stripe listen で表示された値>"
+```
+
+**テストイベントの送信:**
+
+```bash
+# サブスクリプション作成のテスト
+stripe trigger checkout.session.completed
+
+# サブスクリプション更新のテスト
+stripe trigger customer.subscription.updated
+
+# サブスクリプション解約のテスト
+stripe trigger customer.subscription.deleted
+```
+
+> `stripe trigger` はリアルな Stripe テスト API にイベントを送信します。  
+> `STRIPE_API_BASE_URL` を stripe-mock に向けている場合でも、`stripe trigger` は stripe-mock ではなく  
+> Stripe のテスト環境に接続するため、Stripe アカウントへのログインが別途必要です。  
+> Webhook 受信のみ確認したい場合は `stripe trigger` の代わりに curl で直接 POST することも可能です。
+
+#### 本番への切り替え
+
+[Stripe Dashboard](https://dashboard.stripe.com/) で商品・価格を作成し、以下に差し替えます。  
+`STRIPE_API_BASE_URL` は**削除**すると本番 API (`api.stripe.com`) に接続されます。
+
+```env
+STRIPE_SECRET_KEY="sk_live_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+STRIPE_BASIC_PRICE_ID="price_..."
+STRIPE_PREMIUM_PRICE_ID="price_..."
+# STRIPE_API_BASE_URL は削除 (または未設定)
+```
+
 ---
 
 ## 8. テストの実行
@@ -291,6 +378,25 @@ R2_BUCKET_NAME="chat-app"
 R2_ENDPOINT="http://localhost:9000"
 R2_PUBLIC_URL="http://localhost:9000/chat-app"
 ```
+
+### Stripe API に接続できない / `STRIPE_SECRET_KEY` 未設定エラー
+
+stripe-mock が起動しているか確認します。
+
+```bash
+docker compose ps        # stripe-mock が healthy か確認
+docker compose up -d     # 未起動なら起動
+```
+
+`.env` に以下が設定されていることを確認してください。
+
+```env
+STRIPE_SECRET_KEY="sk_test_123"
+STRIPE_API_BASE_URL="http://localhost:12111"
+```
+
+`STRIPE_API_BASE_URL` が未設定の場合、実際の Stripe API (`api.stripe.com`) に接続しようとします。  
+ローカル開発では必ず設定してください。
 
 ### NextAuth で「Configuration」エラー
 
