@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import { prisma } from '@/shared/lib/db/prisma'
 import { env } from '@/shared/config/env'
+import { checkRateLimit, RATE_LIMITS, getClientIp } from '@/lib/security/rate-limit'
 
 function generateUserId(): string {
   return crypto.randomBytes(8).toString('hex')
@@ -37,12 +38,25 @@ export const authConfig: NextAuthConfig = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const email = credentials?.email
         const password = credentials?.password
         if (typeof email !== 'string' || typeof password !== 'string') {
           return null
         }
+
+        // IP-based rate limit: 10 attempts/min
+        const ip = getClientIp(request as Request)
+        const ipLimit = await checkRateLimit(`auth:login:ip:${ip}`, 10, 60_000)
+        if (!ipLimit.success) return null
+
+        // Email-based rate limit: 5 attempts/15min (account lockout equivalent)
+        const emailLimit = await checkRateLimit(
+          `auth:login:email:${email}`,
+          RATE_LIMITS.login.limit,
+          RATE_LIMITS.login.windowMs,
+        )
+        if (!emailLimit.success) return null
 
         const user = await prisma.user.findUnique({
           where: { email },

@@ -125,7 +125,7 @@ export async function middleware(request: NextRequest) {
   const cspHeader = `
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""};
-    style-src 'self' 'unsafe-inline';
+    style-src 'self' 'nonce-${nonce}';
     img-src 'self' blob: data: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://api.dicebear.com${isDev ? " http://localhost:9000" : ""}${r2ImgOrigin};
     font-src 'self';
     connect-src 'self'${isDev ? " ws://localhost:3000 ws://localhost:3001" : ""};
