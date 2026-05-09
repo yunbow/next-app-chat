@@ -7,6 +7,9 @@ import { Avatar } from "@/shared/ui/avatar/Avatar";
 import { Button } from "@/shared/ui/button/Button";
 import { cn } from "@/shared/lib/utils/cn";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { Pagination } from "@/shared/ui/common/Pagination";
+
+const PAGE_SIZE = 10;
 
 interface Notification {
   id: string;
@@ -27,6 +30,7 @@ export default function NotificationsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -177,8 +181,9 @@ export default function NotificationsPage() {
           <p className="text-muted-foreground">通知はありません</p>
         </div>
       ) : (
+        <>
         <ul className="space-y-3">
-          {notifications.map((notification) => (
+          {notifications.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE).map((notification) => (
             <li
               key={notification.id}
               className={cn(
@@ -220,6 +225,12 @@ export default function NotificationsPage() {
             </li>
           ))}
         </ul>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(notifications.length / PAGE_SIZE)}
+          onPageChange={setCurrentPage}
+        />
+        </>
       )}
     </div>
   );

@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/shared/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { Search, Filter, ArrowUpDown } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 type Props = {
   basePath: string;
@@ -15,10 +15,6 @@ export function ChatFilters({ basePath, showTypeFilter = true }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("q") || "");
-
-  useEffect(() => {
-    setSearch(searchParams.get("q") || "");
-  }, [searchParams]);
 
   const updateFilters = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());

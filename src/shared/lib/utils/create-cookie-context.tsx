@@ -95,7 +95,7 @@ export function createCookieContext<T extends string>(
       }
       // 初回のみ副作用を適用
       applyEffect?.(savedValue);
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
 
     const setValue = useCallback((value: T) => {
       setValueInternal(value);

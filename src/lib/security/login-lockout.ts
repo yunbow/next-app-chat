@@ -3,7 +3,6 @@
  * Redisを使用してログイン失敗回数を追跡し、一定回数失敗したらアカウントをロック
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let redis: any = null;
 
 if (process.env.NODE_ENV === "production") {

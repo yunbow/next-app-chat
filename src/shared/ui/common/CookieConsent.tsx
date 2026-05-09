@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/shared/ui/button/Button";
 import { useTranslations } from "@/shared/lib/i18n";
 
@@ -8,14 +8,9 @@ const COOKIE_CONSENT_KEY = "cookie-consent";
 
 export function CookieConsent() {
   const { t } = useTranslations();
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
-    if (!consent) {
-      setIsVisible(true);
-    }
-  }, []);
+  const [isVisible, setIsVisible] = useState(
+    () => typeof window !== "undefined" && !localStorage.getItem(COOKIE_CONSENT_KEY)
+  );
 
   const handleAccept = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, "accepted");

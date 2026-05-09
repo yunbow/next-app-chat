@@ -1,17 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { Fragment } from "react";
 import { Button } from "@/shared/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Props = {
   currentPage: number;
   totalPages: number;
-  basePath: string;
+  onPageChange?: (page: number) => void;
+  basePath?: string;
   searchParams?: Record<string, string>;
 };
 
-export function Pagination({ currentPage, totalPages, basePath, searchParams = {} }: Props) {
+export function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  basePath,
+  searchParams = {},
+}: Props) {
   if (totalPages <= 1) return null;
 
   const buildUrl = (page: number) => {
@@ -19,71 +27,67 @@ export function Pagination({ currentPage, totalPages, basePath, searchParams = {
     return `${basePath}?${params.toString()}`;
   };
 
-  const pages = [];
+  const pages: number[] = [];
   const showPages = 5;
   let startPage = Math.max(1, currentPage - Math.floor(showPages / 2));
   let endPage = Math.min(totalPages, startPage + showPages - 1);
+  if (endPage - startPage < showPages - 1) startPage = Math.max(1, endPage - showPages + 1);
+  for (let i = startPage; i <= endPage; i++) pages.push(i);
 
-  if (endPage - startPage < showPages - 1) {
-    startPage = Math.max(1, endPage - showPages + 1);
-  }
-
-  for (let i = startPage; i <= endPage; i++) {
-    pages.push(i);
-  }
+  const renderPage = (
+    page: number,
+    children: React.ReactNode,
+    opts: { disabled?: boolean; active?: boolean; label?: string } = {}
+  ) => {
+    const { disabled, active, label } = opts;
+    const btn = (
+      <Button
+        variant={active ? "default" : "outline"}
+        size="sm"
+        disabled={disabled}
+        aria-label={label}
+        onClick={onPageChange && !disabled ? () => onPageChange(page) : undefined}
+      >
+        {children}
+      </Button>
+    );
+    if (!onPageChange && basePath && !disabled) {
+      return <Link href={buildUrl(page)}>{btn}</Link>;
+    }
+    return btn;
+  };
 
   return (
     <div className="flex items-center justify-center gap-2 mt-8">
-      <Link href={buildUrl(Math.max(1, currentPage - 1))}>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={currentPage === 1}
-          aria-label="前のページ"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-      </Link>
+      {renderPage(Math.max(1, currentPage - 1), <ChevronLeft className="h-4 w-4" />, {
+        disabled: currentPage === 1,
+        label: "前のページ",
+      })}
 
       {startPage > 1 && (
         <>
-          <Link href={buildUrl(1)}>
-            <Button variant="outline" size="sm">1</Button>
-          </Link>
+          {renderPage(1, "1")}
           {startPage > 2 && <span className="px-2">...</span>}
         </>
       )}
 
       {pages.map((page) => (
-        <Link key={page} href={buildUrl(page)}>
-          <Button
-            variant={page === currentPage ? "default" : "outline"}
-            size="sm"
-          >
-            {page}
-          </Button>
-        </Link>
+        <Fragment key={page}>
+          {renderPage(page, page, { active: page === currentPage })}
+        </Fragment>
       ))}
 
       {endPage < totalPages && (
         <>
           {endPage < totalPages - 1 && <span className="px-2">...</span>}
-          <Link href={buildUrl(totalPages)}>
-            <Button variant="outline" size="sm">{totalPages}</Button>
-          </Link>
+          {renderPage(totalPages, totalPages)}
         </>
       )}
 
-      <Link href={buildUrl(Math.min(totalPages, currentPage + 1))}>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={currentPage === totalPages}
-          aria-label="次のページ"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </Link>
+      {renderPage(Math.min(totalPages, currentPage + 1), <ChevronRight className="h-4 w-4" />, {
+        disabled: currentPage === totalPages,
+        label: "次のページ",
+      })}
     </div>
   );
 }

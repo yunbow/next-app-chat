@@ -17,7 +17,7 @@ export default function Home() {
     }
   }, [status, router]);
 
-  if (session || status === 'authenticated') {
+  if (status === 'authenticated') {
     return null;
   }
 

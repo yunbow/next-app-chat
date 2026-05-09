@@ -41,34 +41,27 @@ export function ChatSidebarSection() {
   const [dmSearch, setDmSearch] = useState("");
   const [dmSort, setDmSort] = useState<DMSort>("recent");
 
-  const fetchCurrentUser = async () => {
-    try {
-      const res = await fetch('/api/users/me');
-      if (res.ok) {
-        const data = await res.json();
-        setCurrentUser(data.user);
-      }
-    } catch {
-      // ignore
-    }
-  };
-
-  const fetchDMs = async () => {
-    try {
-      const res = await fetch('/api/direct-messages');
-      const data = await res.json();
-      setDirectMessages(data.directMessages || []);
-    } catch {
-      // ignore
-    }
-  };
-
   useEffect(() => {
-    fetchDMs();
-    fetchCurrentUser();
+    async function loadDMs() {
+      try {
+        const res = await fetch('/api/direct-messages');
+        const data = await res.json();
+        setDirectMessages(data.directMessages || []);
+      } catch {}
+    }
 
-    const handleDMsUpdate = () => fetchDMs();
-    const handleUserUpdate = () => fetchCurrentUser();
+    async function loadUser() {
+      try {
+        const res = await fetch('/api/users/me');
+        if (res.ok) setCurrentUser((await res.json()).user);
+      } catch {}
+    }
+
+    void loadDMs();
+    void loadUser();
+
+    const handleDMsUpdate = () => { void loadDMs(); };
+    const handleUserUpdate = () => { void loadUser(); };
     window.addEventListener('chat-dms-updated', handleDMsUpdate);
     window.addEventListener('chat-user-updated', handleUserUpdate);
     return () => {

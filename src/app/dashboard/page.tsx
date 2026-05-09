@@ -224,6 +224,7 @@ export default function DashboardPage() {
                   className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/50 transition-colors"
                 >
                   {group.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={group.image}
                       alt={group.name}

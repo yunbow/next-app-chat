@@ -101,49 +101,33 @@ function ChatPageContent() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
-  const fetchGroups = async () => {
-    try {
-      const res = await fetch('/api/groups');
-      const data = await res.json();
-      setGroups(data.groups);
-    } catch (error) {
-      console.error('Error fetching groups:', error);
-    }
-  };
-
-  const fetchDirectMessages = async () => {
-    try {
-      const res = await fetch('/api/direct-messages');
-      const data = await res.json();
-      setDirectMessages(data.directMessages || []);
-    } catch (error) {
-      console.error('Error fetching direct messages:', error);
-    }
-  };
-
-  const fetchCurrentUser = async () => {
-    try {
-      const res = await fetch('/api/users/me');
-      if (res.ok) {
-        const data = await res.json();
-        setCurrentUser(data.user);
-      }
-    } catch (error) {
-      console.error('Error fetching user:', error);
-    }
-  };
-
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/');
       return;
     }
+    if (!session) return;
 
-    if (session) {
-      fetchCurrentUser();
-      fetchGroups();
-      fetchDirectMessages();
+    const ac = new AbortController();
+    const { signal } = ac;
+
+    async function load() {
+      try {
+        const [userRes, groupsRes, dmsRes] = await Promise.all([
+          fetch('/api/users/me', { signal }),
+          fetch('/api/groups', { signal }),
+          fetch('/api/direct-messages', { signal }),
+        ]);
+        if (userRes.ok) setCurrentUser((await userRes.json()).user);
+        if (groupsRes.ok) setGroups((await groupsRes.json()).groups);
+        if (dmsRes.ok) setDirectMessages((await dmsRes.json()).directMessages || []);
+      } catch (e) {
+        if (e instanceof Error && e.name !== 'AbortError') console.error(e);
+      }
     }
+
+    void load();
+    return () => ac.abort();
   }, [session, status, router]);
 
   if (status === 'loading') {

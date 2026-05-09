@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   Bell,
@@ -79,11 +80,12 @@ export function LandingContent() {
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background">
       <section className="relative min-h-[calc(100svh-7rem)] overflow-hidden">
-        <img
+        <Image
           src="/brand/landing-hero.jpg"
           alt=""
-          aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover object-center"
+          aria-hidden={true}
+          fill
+          className="object-cover object-center"
         />
         <div className="absolute inset-0 bg-slate-950/65 md:bg-[linear-gradient(90deg,rgba(2,6,23,0.90)_0%,rgba(2,6,23,0.72)_42%,rgba(2,6,23,0.22)_100%)]" />
 

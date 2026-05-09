@@ -5,6 +5,9 @@ import { Button } from "@/shared/ui/button/Button";
 import { Input } from "@/shared/ui/input/Input";
 import { Avatar } from "@/shared/ui/avatar/Avatar";
 import { cn } from "@/shared/lib/utils/cn";
+import { Pagination } from "@/shared/ui/common/Pagination";
+
+const PAGE_SIZE = 10;
 
 interface User {
   id: string;
@@ -38,6 +41,9 @@ export const FriendsView = ({ currentUserId, onStartDM }: FriendsViewProps) => {
   const [pendingRequests, setPendingRequests] = useState<Friend[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [friendsPage, setFriendsPage] = useState(1);
+  const [requestsPage, setRequestsPage] = useState(1);
+  const [searchPage, setSearchPage] = useState(1);
 
   const fetchFriends = async () => {
     try {
@@ -69,6 +75,7 @@ export const FriendsView = ({ currentUserId, onStartDM }: FriendsViewProps) => {
   }, []);
 
   useEffect(() => {
+    setSearchPage(1);
     const timer = setTimeout(async () => {
       if (searchQuery.trim().length < 2) {
         setSearchResults([]);
@@ -181,7 +188,7 @@ export const FriendsView = ({ currentUserId, onStartDM }: FriendsViewProps) => {
       {/* Tabs */}
       <div className="flex border-b border-border">
         <button
-          onClick={() => setActiveTab("friends")}
+          onClick={() => { setActiveTab("friends"); setFriendsPage(1); }}
           className={cn(
             "flex-1 py-3 text-sm font-medium border-b-2 transition-colors",
             activeTab === "friends"
@@ -192,7 +199,7 @@ export const FriendsView = ({ currentUserId, onStartDM }: FriendsViewProps) => {
           フレンド ({friends.length})
         </button>
         <button
-          onClick={() => setActiveTab("requests")}
+          onClick={() => { setActiveTab("requests"); setRequestsPage(1); }}
           className={cn(
             "flex-1 py-3 text-sm font-medium border-b-2 transition-colors",
             activeTab === "requests"
@@ -203,7 +210,7 @@ export const FriendsView = ({ currentUserId, onStartDM }: FriendsViewProps) => {
           申請 ({incomingRequests.length})
         </button>
         <button
-          onClick={() => setActiveTab("search")}
+          onClick={() => { setActiveTab("search"); setSearchPage(1); }}
           className={cn(
             "flex-1 py-3 text-sm font-medium border-b-2 transition-colors",
             activeTab === "search"
@@ -222,7 +229,8 @@ export const FriendsView = ({ currentUserId, onStartDM }: FriendsViewProps) => {
             {friends.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">フレンドがいません</p>
             ) : (
-              friends.map((friendship) => {
+              <>
+              {friends.slice((friendsPage - 1) * PAGE_SIZE, friendsPage * PAGE_SIZE).map((friendship) => {
                 const friendUser =
                   friendship.userId === currentUserId ? friendship.friend : friendship.user;
                 return (
@@ -266,7 +274,13 @@ export const FriendsView = ({ currentUserId, onStartDM }: FriendsViewProps) => {
                     </div>
                   </div>
                 );
-              })
+              })}
+              <Pagination
+                currentPage={friendsPage}
+                totalPages={Math.ceil(friends.length / PAGE_SIZE)}
+                onPageChange={setFriendsPage}
+              />
+              </>
             )}
           </div>
         )}
@@ -276,7 +290,8 @@ export const FriendsView = ({ currentUserId, onStartDM }: FriendsViewProps) => {
             {incomingRequests.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">申請はありません</p>
             ) : (
-              incomingRequests.map((request) => {
+              <>
+              {incomingRequests.slice((requestsPage - 1) * PAGE_SIZE, requestsPage * PAGE_SIZE).map((request) => {
                 const requester = request.user;
                 return (
                   <div
@@ -316,7 +331,13 @@ export const FriendsView = ({ currentUserId, onStartDM }: FriendsViewProps) => {
                     </div>
                   </div>
                 );
-              })
+              })}
+              <Pagination
+                currentPage={requestsPage}
+                totalPages={Math.ceil(incomingRequests.length / PAGE_SIZE)}
+                onPageChange={setRequestsPage}
+              />
+              </>
             )}
           </div>
         )}
@@ -341,7 +362,8 @@ export const FriendsView = ({ currentUserId, onStartDM }: FriendsViewProps) => {
                   ユーザーが見つかりませんでした
                 </p>
               ) : (
-                searchResults.map((user) => (
+                <>
+                {searchResults.slice((searchPage - 1) * PAGE_SIZE, searchPage * PAGE_SIZE).map((user) => (
                   <div
                     key={user.id}
                     className="flex items-center justify-between p-3 bg-muted/40 rounded-lg"
@@ -368,7 +390,13 @@ export const FriendsView = ({ currentUserId, onStartDM }: FriendsViewProps) => {
                       申請
                     </Button>
                   </div>
-                ))
+                ))}
+                <Pagination
+                  currentPage={searchPage}
+                  totalPages={Math.ceil(searchResults.length / PAGE_SIZE)}
+                  onPageChange={setSearchPage}
+                />
+                </>
               )}
             </div>
           </div>

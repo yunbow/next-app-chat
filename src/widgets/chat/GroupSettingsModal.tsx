@@ -58,22 +58,14 @@ export const GroupSettingsModal = ({
     setDescription(initialDescription || '');
   }, [initialName, initialDescription]);
 
-  const fetchMembers = async () => {
-    try {
-      const res = await fetch(`/api/groups/${groupId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setMembers(data.group.members || []);
-      }
-    } catch (error) {
-      console.error('Error fetching members:', error);
-    }
-  };
-
   useEffect(() => {
-    if (isOpen && activeTab === 'members') {
-      fetchMembers();
-    }
+    if (!isOpen || activeTab !== 'members') return;
+    let cancelled = false;
+    fetch(`/api/groups/${groupId}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data && !cancelled) setMembers(data.group.members || []); })
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, [isOpen, activeTab, groupId]);
 
   // ユーザー検索

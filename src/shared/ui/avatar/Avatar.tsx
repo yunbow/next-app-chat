@@ -38,6 +38,7 @@ export const Avatar = ({
 
   return (
     <div className={cn('relative inline-block', className)}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={imageUrl}
         alt={alt || name || 'Avatar'}

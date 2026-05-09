@@ -3,12 +3,7 @@
 import { useState, useEffect } from 'react';
 
 interface Notification {
-  id: string;
-  type: 'friend_request' | 'message' | 'group_invite';
-  title: string;
-  content: string;
   isRead: boolean;
-  createdAt: string;
 }
 
 interface NotificationBellProps {
@@ -18,23 +13,25 @@ interface NotificationBellProps {
 export const NotificationBell = ({ onClick }: NotificationBellProps) => {
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const fetchNotifications = async () => {
-    try {
-      const res = await fetch('/api/notifications');
-      if (res.ok) {
-        const data = await res.json();
-        setUnreadCount(data.notifications?.filter((n: Notification) => !n.isRead).length || 0);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  };
-
   useEffect(() => {
-    fetchNotifications();
-    // 30秒ごとに通知を更新
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const res = await fetch('/api/notifications');
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setUnreadCount(data.notifications?.filter((n: Notification) => !n.isRead).length || 0);
+        }
+      } catch {}
+    }
+
+    void load();
+    const interval = setInterval(() => { void load(); }, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   return (

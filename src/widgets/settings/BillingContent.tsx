@@ -130,8 +130,12 @@ export function BillingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loadingPlan, setLoadingPlan] = useState<"basic" | "premium" | "portal" | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(
+    () => searchParams.get("canceled") === "true" ? t("billing.canceledMessage") : null
+  );
+  const [successMsg, setSuccessMsg] = useState<string | null>(
+    () => searchParams.get("success") === "true" ? t("billing.successMessage") : null
+  );
 
   const { data, isLoading } = useQuery({
     queryKey: ["subscription"],
@@ -139,14 +143,11 @@ export function BillingContent() {
   });
 
   useEffect(() => {
-    if (searchParams.get("success") === "true") {
-      setSuccessMsg(t("billing.successMessage"));
-      router.replace("/settings/billing");
-    } else if (searchParams.get("canceled") === "true") {
-      setErrorMsg(t("billing.canceledMessage"));
+    if (searchParams.get("success") === "true" || searchParams.get("canceled") === "true") {
       router.replace("/settings/billing");
     }
-  }, [searchParams, t, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const currentPlan = data?.plan ?? "free";
 

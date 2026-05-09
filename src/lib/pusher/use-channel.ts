@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import type { Channel } from "pusher-js";
 import { getPusherClient } from "./client";
 
@@ -15,7 +15,9 @@ export function useChannel(
 ) {
   const channelRef = useRef<Channel | null>(null);
   const callbackRef = useRef(callback);
-  callbackRef.current = callback;
+  useLayoutEffect(() => {
+    callbackRef.current = callback;
+  });
 
   useEffect(() => {
     const pusher = getPusherClient();

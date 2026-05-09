@@ -29,7 +29,32 @@ import {
 } from "@/shared/ui/common/icons";
 import { BrandLogo } from "@/shared/ui/common/BrandLogo";
 import { useTranslations } from "@/shared/lib/i18n";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Crown, Zap, Star } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+
+type Plan = "free" | "basic" | "premium";
+
+const PLAN_BADGE_COLORS: Record<Plan, string> = {
+  free: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  basic: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  premium: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+};
+
+const PLAN_ICON_COLORS: Record<Plan, string> = {
+  free: "text-slate-500",
+  basic: "text-blue-500",
+  premium: "text-amber-500",
+};
+
+function PlanBadge({ plan }: { plan: Plan }) {
+  const Icon = plan === "premium" ? Crown : plan === "basic" ? Zap : Star;
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${PLAN_BADGE_COLORS[plan]}`}>
+      <Icon className={`h-3 w-3 ${PLAN_ICON_COLORS[plan]}`} />
+      {plan.charAt(0).toUpperCase() + plan.slice(1)}
+    </span>
+  );
+}
 
 type NavItem = {
   labelKey: "dashboard" | "chats" | "friends" | "groups" | "createGroup" | "notifications" | "profile" | "settings";
@@ -53,6 +78,17 @@ export function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { t } = useTranslations();
+
+  const { data: subData } = useQuery<{ plan: Plan }>({
+    queryKey: ["subscription"],
+    queryFn: async () => {
+      const res = await fetch("/api/billing/subscription");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const json = await res.json();
+      return json.subscription;
+    },
+    enabled: !!session,
+  });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -180,9 +216,12 @@ export function Sidebar() {
                 </Avatar>
                 {!isCollapsed && (
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">
-                      {session.user?.name || t("common.nameNotSet")}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-medium text-sm truncate">
+                        {session.user?.name || t("common.nameNotSet")}
+                      </p>
+                      {subData?.plan && <PlanBadge plan={subData.plan} />}
+                    </div>
                     <p className="text-xs text-muted-foreground truncate">
                       {session.user?.username
                         ? `@${session.user.username}`

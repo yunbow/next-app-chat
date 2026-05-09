@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/shared/lib/utils";
 
 type BrandLogoProps = {
@@ -17,11 +18,13 @@ export function BrandLogo({
 }: BrandLogoProps) {
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
-      <img
+      <Image
         src="/brand/chat-icon.png"
         alt=""
-        aria-hidden="true"
-        className={cn("h-8 w-8 rounded-lg object-cover", iconClassName)}
+        aria-hidden={true}
+        width={32}
+        height={32}
+        className={cn("rounded-lg object-cover", iconClassName)}
       />
       {showText && <span className={textClassName}>{text}</span>}
     </span>

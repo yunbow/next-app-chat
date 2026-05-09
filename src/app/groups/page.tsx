@@ -7,6 +7,9 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/shared/ui/button/Button";
 import { getImageUrl } from "@/lib/utils/image-url";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { Pagination } from "@/shared/ui/common/Pagination";
+
+const PAGE_SIZE = 10;
 
 interface Group {
   id: string;
@@ -22,6 +25,7 @@ export default function GroupsPage() {
   const router = useRouter();
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -96,8 +100,9 @@ export default function GroupsPage() {
           </Link>
         </div>
       ) : (
+        <>
         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {groups.map((group) => (
+          {groups.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE).map((group) => (
             <li key={group.id}>
               <Link
                 href={`/chat?group=${group.id}`}
@@ -105,6 +110,7 @@ export default function GroupsPage() {
               >
                 <div className="flex items-start gap-3">
                   {group.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={getImageUrl(group.image) || group.image}
                       alt={group.name}
@@ -133,6 +139,12 @@ export default function GroupsPage() {
             </li>
           ))}
         </ul>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(groups.length / PAGE_SIZE)}
+          onPageChange={setCurrentPage}
+        />
+        </>
       )}
     </div>
   );

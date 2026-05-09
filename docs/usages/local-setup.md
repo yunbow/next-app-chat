@@ -45,13 +45,6 @@ DATABASE_URL="postgresql://app:app@localhost:54324/app?schema=public"
 NEXTAUTH_SECRET="<openssl rand -base64 48 で生成>"
 NEXTAUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
-
-# MinIO (docker compose で自動起動)
-R2_ACCESS_KEY_ID="minioadmin"
-R2_SECRET_ACCESS_KEY="minioadmin"
-R2_BUCKET_NAME="chat-app"
-R2_ENDPOINT="http://localhost:9000"
-R2_PUBLIC_URL="http://localhost:9000/chat-app"
 ```
 
 `NEXTAUTH_SECRET` の生成:
@@ -60,7 +53,9 @@ R2_PUBLIC_URL="http://localhost:9000/chat-app"
 openssl rand -base64 48
 ```
 
-OAuth (Google/GitHub) や Pusher を有効化する場合は [§7 任意機能の有効化](#7-任意機能の有効化) を参照してください。
+**MinIO・Stripe** の設定値は `.env.example` のデフォルト値が Docker Compose のローカルサービスを向いているため、コピーしたそのままで追加設定は不要です。
+
+OAuth (Google/GitHub)・Pusher・SMTP・Redis を有効化する場合は [§7 任意機能の有効化](#7-任意機能の有効化) を参照してください。
 
 ---
 
@@ -202,7 +197,46 @@ NEXT_PUBLIC_PUSHER_KEY="..."
 NEXT_PUBLIC_PUSHER_CLUSTER="ap3"
 ```
 
-### 7.4 Stripe (サブスクリプション決済)
+### 7.4 SMTP (メール送信)
+
+パスワードリセット・通知メールなどに使用します。未設定の場合はメール送信は無効になります。
+
+`SMTP_HOST` / `SMTP_USER` / `SMTP_PASSWORD` は 3 つすべてセットするか、すべて未設定にしてください。
+
+```env
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="your-address@gmail.com"
+SMTP_PASSWORD="your-app-password"
+SMTP_FROM_EMAIL="noreply@example.com"
+SMTP_FROM_NAME="Chat"
+```
+
+> Gmail の場合は通常のパスワードではなく「アプリパスワード」を使用してください。
+
+### 7.5 Upstash Redis (レート制限)
+
+API エンドポイントへのレート制限に使用します。未設定の場合はレート制限が無効になります。
+
+1. [Upstash コンソール](https://upstash.com/) で Redis データベースを作成
+2. 「REST API」タブに表示された値を設定
+
+```env
+UPSTASH_REDIS_REST_URL="https://..."
+UPSTASH_REDIS_REST_TOKEN="..."
+```
+
+`UPSTASH_REDIS_REST_URL` と `UPSTASH_REDIS_REST_TOKEN` は両方セットするか、両方未設定にしてください。
+
+### 7.6 その他の任意設定
+
+| 変数 | 用途 | 生成方法 |
+| --- | --- | --- |
+| `ENCRYPTION_KEY` | メッセージの AES-256 暗号化 | `openssl rand -hex 32` (64 文字 hex) |
+| `CRON_SECRET` | Cron API エンドポイントの認証 (本番では必須) | `openssl rand -base64 48` |
+| `LOG_LEVEL` | サーバーログの詳細度 (デフォルト: `info`) | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` |
+
+### 7.7 Stripe (サブスクリプション決済)
 
 #### ローカル開発 — stripe-mock を使う (デフォルト)
 
@@ -296,6 +330,12 @@ STRIPE_PREMIUM_PRICE_ID="price_..."
 # ユニット & 統合テスト
 npm test
 
+# ユニットテストのみ
+npm run test:unit
+
+# 統合テストのみ
+npm run test:integration
+
 # 監視モード
 npm run test:watch
 
@@ -305,6 +345,12 @@ npm run test:coverage
 # E2E (初回のみブラウザのインストールが必要)
 npx playwright install
 npm run test:e2e
+
+# Playwright UI モード (ビジュアルデバッガー)
+npm run test:e2e:ui
+
+# Playwright デバッグモード
+npm run test:e2e:debug
 ```
 
 `npm run test:e2e` は `playwright.config.ts` の `webServer` 設定により、dev サーバーが未起動の場合は自動で起動します。
@@ -320,13 +366,18 @@ npm run test:e2e
 | `npm run lint` | ESLint |
 | `npm run type-check` | `tsc --noEmit` 型チェック |
 | `npm test` | Vitest (一回実行) |
+| `npm run test:unit` | Vitest ユニットテスト |
+| `npm run test:integration` | Vitest 統合テスト |
 | `npm run test:e2e` | Playwright E2E |
+| `npm run test:e2e:ui` | Playwright UI モード |
+| `npm run test:e2e:debug` | Playwright デバッグモード |
 | `npm run db:migrate:dev` | マイグレーション適用 (開発用) |
 | `npm run db:migrate:deploy` | マイグレーション適用 (本番用・非対話) |
 | `npm run db:migrate:status` | マイグレーション状態確認 |
 | `npm run db:seed` | 開発用テストデータ投入 |
 | `npm run db:seed:prod` | 本番相当データ投入 (マスタのみ) |
 | `npm run prisma:studio` | Prisma Studio (`http://localhost:5555`) |
+| `npm run upload:static` | `public/brand/` の画像を R2/MinIO に一括アップロード |
 
 ---
 
