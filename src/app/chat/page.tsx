@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChatMessagesWindow } from '@/widgets/chat/ChatMessagesWindow';
 import { GroupSettingsModal } from '@/widgets/chat/GroupSettingsModal';
@@ -100,6 +100,11 @@ function ChatPageContent() {
   const [directMessages, setDirectMessages] = useState<DirectMessage[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+
+  const fetchGroups = useCallback(async () => {
+    const res = await fetch('/api/groups');
+    if (res.ok) setGroups((await res.json()).groups);
+  }, []);
 
   useEffect(() => {
     if (status === 'unauthenticated') {

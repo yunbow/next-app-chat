@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/shared/ui/button/Button';
 import { Input } from '@/shared/ui/input/Input';
 import { Avatar } from '@/shared/ui/avatar/Avatar';
@@ -58,15 +58,18 @@ export const GroupSettingsModal = ({
     setDescription(initialDescription || '');
   }, [initialName, initialDescription]);
 
+  const fetchMembers = useCallback(async () => {
+    const res = await fetch(`/api/groups/${groupId}`);
+    if (res.ok) {
+      const data = await res.json();
+      setMembers(data.group.members || []);
+    }
+  }, [groupId]);
+
   useEffect(() => {
     if (!isOpen || activeTab !== 'members') return;
-    let cancelled = false;
-    fetch(`/api/groups/${groupId}`)
-      .then(res => res.ok ? res.json() : null)
-      .then(data => { if (data && !cancelled) setMembers(data.group.members || []); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [isOpen, activeTab, groupId]);
+    void fetchMembers();
+  }, [isOpen, activeTab, fetchMembers]);
 
   // ユーザー検索
   useEffect(() => {
