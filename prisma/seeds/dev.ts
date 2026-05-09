@@ -31,6 +31,12 @@ export async function seedDev(prisma: PrismaClient): Promise<void> {
     },
   });
 
+  await prisma.subscription.upsert({
+    where: { userId: alice.id },
+    update: { plan: 'premium' },
+    create: { userId: alice.id, plan: 'premium', status: 'active' },
+  });
+
   const bob = await prisma.user.upsert({
     where: { email: 'bob@example.com' },
     update: {},
